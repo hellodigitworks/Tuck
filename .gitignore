@@ -1,0 +1,5 @@
+.build/
+build/
+icons/AppIcon.iconset/
+.DS_Store
+.claude-flow/
