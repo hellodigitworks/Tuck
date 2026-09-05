@@ -18,13 +18,14 @@ struct PreferencesView: View {
                     .foregroundStyle(.secondary)
             }
 
-            MenuBarDiagram(alwaysHidden: preferences.alwaysHiddenEnabled)
+            MenuBarDiagram()
                 .frame(maxWidth: .infinity)
 
             VStack(alignment: .leading, spacing: 6) {
-                Text("Hold ⌘ and drag any icon to the left of the line. It now hides with the rest.")
-                Text("Click ‹ to show everything. Click › to hide it again.")
+                Text("Hold ⌘ and drag any icon to the left of the mark. It now hides with the rest.")
+                Text("Click ✕ to hide them. Click + to bring them back.")
             }
+            .fixedSize(horizontal: false, vertical: true)
 
             Divider()
 
@@ -47,8 +48,6 @@ struct PreferencesView: View {
                 }
                 Toggle("Use the full menu bar while showing", isOn: $preferences.useFullMenuBar)
                 note("Tuck becomes the front app for a moment. Its short menu leaves the most room for icons.")
-                Toggle("Always-hidden section", isOn: $preferences.alwaysHiddenEnabled)
-                note("Adds a dotted line. Icons left of it stay hidden even while the rest are showing. Option-click ‹ to peek at them.")
             }
             .toggleStyle(.checkbox)
 
@@ -100,21 +99,14 @@ struct PreferencesView: View {
     }
 }
 
-/// A sketch of the menu bar with Tuck's marks in it, so the sections are obvious.
+/// A sketch of the menu bar, with the mark where Tuck puts it.
 struct MenuBarDiagram: View {
-    let alwaysHidden: Bool
-
     var body: some View {
         HStack(alignment: .top, spacing: 0) {
-            if alwaysHidden {
-                section(["moon.fill", "bolt.fill"], caption: "always hidden")
-                marker { DottedLine() }
-            }
-            section(["wifi", "cloud.fill", "bell.fill"], caption: "hidden until you click ‹")
-            marker { Rectangle().frame(width: 1.5, height: 16) }
-            marker {
-                Image(systemName: "chevron.left")
-                    .font(.system(size: 12, weight: .semibold))
+            section(["wifi", "cloud.fill", "bell.fill"], caption: "hidden until you click +")
+            VStack(spacing: 10) {
+                MarkGlyph(crossed: false).frame(width: 16, height: 20)
+                Text(" ").font(.caption)
             }
             section(["battery.100", "clock"], caption: "always showing")
         }
@@ -142,23 +134,18 @@ struct MenuBarDiagram: View {
         }
         .padding(.horizontal, 10)
     }
-
-    private func marker<Content: View>(@ViewBuilder _ content: () -> Content) -> some View {
-        VStack(spacing: 10) {
-            content().frame(width: 12, height: 20)
-            Text(" ").font(.caption)
-        }
-    }
 }
 
-struct DottedLine: View {
+/// The same mark Tuck shows in the menu bar: a plus that rotates into an ✕.
+struct MarkGlyph: View {
+    var crossed: Bool
+
     var body: some View {
-        Path { path in
-            path.move(to: CGPoint(x: 0.75, y: 0))
-            path.addLine(to: CGPoint(x: 0.75, y: 16))
+        ZStack {
+            Capsule().frame(width: 13.2, height: 1.7)
+            Capsule().frame(width: 1.7, height: 13.2)
         }
-        .stroke(style: StrokeStyle(lineWidth: 1.5, lineCap: .round, dash: [1.5, 3]))
-        .frame(width: 1.5, height: 16)
+        .rotationEffect(.degrees(crossed ? 45 : 0))
     }
 }
 

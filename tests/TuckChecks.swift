@@ -61,7 +61,6 @@ do {
     check(prefs.autoHide == true, "auto hide on by default")
     check(prefs.autoHideSeconds == 10, "auto hide after 10 seconds by default")
     check(prefs.useFullMenuBar == false, "full menu bar off by default")
-    check(prefs.alwaysHiddenEnabled == false, "always-hidden section off by default")
     check(prefs.hasHiddenBefore == false, "fresh install has not hidden yet")
     check(prefs.hotKey == nil, "no shortcut by default")
 }
@@ -72,15 +71,17 @@ do {
     let prefs = Preferences(defaults: defaults)
     prefs.autoHide = false
     prefs.autoHideSeconds = 30
-    prefs.alwaysHiddenEnabled = true
     prefs.hasHiddenBefore = true
+    prefs.hidingWidth = 2100
+    prefs.hidingBarWidth = 2560
     prefs.hotKey = KeyCombo(keyCode: UInt32(kVK_ANSI_H), modifiers: [.control, .option], characters: "h")
 
     let again = Preferences(defaults: UserDefaults(suiteName: name)!)
     check(again.autoHide == false, "auto hide change comes back")
     check(again.autoHideSeconds == 30, "delay change comes back")
-    check(again.alwaysHiddenEnabled == true, "always-hidden change comes back")
     check(again.hasHiddenBefore == true, "hidden-before flag comes back")
+    check(again.hidingWidth == 2100, "learned hiding width comes back")
+    check(again.hidingBarWidth == 2560, "the screen it was learned on comes back")
     check(again.hotKey?.displayString == "⌃⌥H", "shortcut comes back")
 }
 

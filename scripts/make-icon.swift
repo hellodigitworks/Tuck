@@ -1,5 +1,5 @@
-// Generates the Tuck app icon: white rounded square, orange line, black chevron.
-// The same marks Tuck puts in the menu bar, in the same order.
+// Generates the Tuck app icon: white rounded square, orange mark.
+// The same mark Tuck shows in the menu bar, caught mid-rotation between plus and X.
 // Regenerate with: swift scripts/make-icon.swift
 // Output: icons/AppIcon.icns (plus the intermediate iconset)
 
@@ -7,7 +7,6 @@ import AppKit
 import CoreGraphics
 
 let orange = CGColor(red: 1.0, green: 0.18, blue: 0.0, alpha: 1.0)
-let black = CGColor(red: 0.0, green: 0.0, blue: 0.0, alpha: 1.0)
 let white = CGColor(red: 1.0, green: 1.0, blue: 1.0, alpha: 1.0)
 
 func draw(size: Int) -> CGImage? {
@@ -27,26 +26,19 @@ func draw(size: Int) -> CGImage? {
     ctx.setFillColor(white)
     ctx.fillPath()
 
-    let markHeight = rect.height * 0.34
-    let stroke = rect.width * 0.075
-
-    // Orange line, left of centre.
-    let lineX = rect.midX - rect.width * 0.14
-    let lineRect = CGRect(x: lineX - stroke / 2, y: rect.midY - markHeight / 2, width: stroke, height: markHeight)
-    ctx.addPath(CGPath(roundedRect: lineRect, cornerWidth: stroke / 2, cornerHeight: stroke / 2, transform: nil))
-    ctx.setFillColor(orange)
-    ctx.fillPath()
-
-    // Black chevron pointing left, right of centre.
-    let chevronX = rect.midX + rect.width * 0.14
-    let chevronWidth = rect.width * 0.16
-    ctx.setStrokeColor(black)
+    // The mark: two crossed strokes. Upright is a plus, 45 degrees is an X.
+    let arm = rect.width * 0.21
+    let stroke = rect.width * 0.085
+    let center = CGPoint(x: rect.midX, y: rect.midY)
+    ctx.setStrokeColor(orange)
     ctx.setLineWidth(stroke)
     ctx.setLineCap(.round)
-    ctx.setLineJoin(.round)
-    ctx.move(to: CGPoint(x: chevronX + chevronWidth / 2, y: rect.midY + markHeight / 2))
-    ctx.addLine(to: CGPoint(x: chevronX - chevronWidth / 2, y: rect.midY))
-    ctx.addLine(to: CGPoint(x: chevronX + chevronWidth / 2, y: rect.midY - markHeight / 2))
+    for base in [CGFloat.zero, .pi / 2] {
+        let dx = cos(base) * arm
+        let dy = sin(base) * arm
+        ctx.move(to: CGPoint(x: center.x - dx, y: center.y - dy))
+        ctx.addLine(to: CGPoint(x: center.x + dx, y: center.y + dy))
+    }
     ctx.strokePath()
 
     return ctx.makeImage()

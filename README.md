@@ -1,35 +1,48 @@
 # Tuck
 
-Hides the menu bar icons you are not using right now. Drag them to the left of
-Tuck's line, click the chevron, and they are out of sight. Click again and they
-are back. Nothing is removed and nothing is running except one small menu bar app.
+Hides the menu bar icons you are not using right now. Drag them to the left of Tuck's
+mark, click it, and they are out of sight. Click again and they are back. Nothing is
+removed and nothing is running except one small menu bar app.
 
-How it hides: macOS lays out menu bar icons from the right, and an icon that
-does not fit disappears along with everything to its left. When you hide, Tuck's
-line and an invisible spacer next to it each become half a screen wide. The first
-one that no longer fits takes every icon left of it out of view. Nothing is
-removed. Thin them again and the icons are back.
+One mark and nothing else: a plus while the icons are hidden, an ✕ while they are
+showing. It rotates between the two. No line, no gap, nothing else in the bar.
+
+## How it hides
+
+macOS lays out menu bar icons from the right, and an icon that does not fit drops off the
+left end. Tuck keeps a few empty items just left of its mark and widens them until the bar
+is full, which takes every icon past them out of view. Narrow them again and the icons come
+straight back.
+
+Three details, all measured on macOS 27:
+
+- **The width has to go up in steps.** Set it in one jump and macOS shuffles the icons
+  sideways and keeps them on screen: a gap where the icons were, nothing hidden. So the
+  first hide on a screen walks the width up, then Tuck remembers what worked and opens
+  there next time. That is why the icons only slide across the bar once.
+- **One item can only take about half the screen.** Past that macOS ignores it, so the
+  width is shared across several items instead of piled onto one.
+- **An empty status item is 16pt wide, not nothing.** A width constraint on its content
+  view holds it open, and that was the gap in the bar. Dropping the constraint and setting
+  the window size by hand takes the item down to a single point. The trick comes from
+  [Ice](https://github.com/jordanbaird/Ice); its own note is that a future macOS could take
+  it away, so if the constraint is missing the items simply rest at 16pt as they used to.
 
 ## Use it
 
-Open `build/Tuck.app`. Two marks appear on the right of the menu bar: a thin
-line and a chevron.
+Open `build/Tuck.app`. A plus appears on the right of the menu bar.
 
-- Hold ⌘ and drag any icon to the left of the line. It now hides with the rest.
-- Click the chevron to show or hide them. It reads ‹ while they are hidden.
-- The very first time, nothing hides until you click ›. After that Tuck starts hidden.
+- Hold ⌘ and drag any icon to the left of the mark. It now hides with the rest.
+- Click the mark to hide or show them. `+` means hidden, `✕` means showing.
+- The very first time nothing hides until you click ✕. After that Tuck starts hidden.
 - They hide again on their own after 10 seconds. Change or switch that off in Preferences.
-- Right-click the chevron, or click the line, for the menu: show, hide, Preferences, Quit.
+- Right-click the mark for the menu: show, hide, Preferences, Quit.
 
-**Always-hidden section.** Turn it on in Preferences and a dotted line appears.
-Icons left of it stay hidden even while the others are showing. Option-click the
-chevron to peek at them.
+**Keyboard shortcut.** Record one in Preferences. It works from any app and needs ⌘, ⌥ or
+⌃ plus a key.
 
-**Keyboard shortcut.** Record one in Preferences. It works from any app and
-needs ⌘, ⌥ or ⌃ plus a key.
-
-**Start at login.** A checkbox in Preferences. Move the app to `/Applications`
-first so macOS can always find it.
+**Start at login.** A checkbox in Preferences. Move the app to `/Applications` first so
+macOS can always find it.
 
 **From a script, Raycast or Shortcuts:**
 
@@ -54,9 +67,9 @@ zsh scripts/test.sh
 | Folder | What |
 |---|---|
 | `src/data/` | Settings, the keyboard shortcut, start at login. No screen code |
-| `src/app/` | App start-up and the three menu bar marks |
-| `src/ui/` | The preferences window and the shortcut recorder |
+| `src/app/` | App start-up and the menu bar items |
+| `src/ui/` | The mark artwork, the preferences window and the shortcut recorder |
 | `scripts/` | Build script, test script and icon generator |
 | `icons/` | Generated app icon |
-| `tests/` | Tests for the settings and shortcut logic |
+| `tests/` | Checks for the settings and shortcut logic |
 | `build/` | The finished app (generated, not committed) |

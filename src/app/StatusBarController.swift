@@ -1,80 +1,89 @@
 import AppKit
 import Combine
 import os
+import QuartzCore
 import TuckCore
 
-/// Owns the menu bar items and the hiding logic.
+/// Owns the menu bar mark and the hiding logic.
 ///
-/// Right to left, the menu bar holds:
-///   [always-hidden icons] [dotted line] [spacers] [hidden icons] [line] [spacers] [chevron] [icons that always show]
+/// One thing is visible: the mark. A plus while the icons are hidden, an ✕ while they
+/// are showing, rotating 45 degrees between the two. Everything to its left hides,
+/// everything to its right stays.
 ///
-/// How hiding works: macOS lays out menu bar icons from the right, and an item
-/// that does not fit disappears together with everything to its left. To hide,
-/// Tuck makes its line and its spacers each about half a screen wide. The first
-/// one that no longer fits takes every icon left of it out of view. Nothing is
-/// removed. Making them thin again brings the icons straight back.
+/// How hiding works: macOS lays out menu bar icons from the right, and an icon that does
+/// not fit drops off the left end. Tuck keeps a few empty items just left of the mark and
+/// widens them until the bar is full, which takes every icon past them out of view.
+/// Narrow them again and the icons come straight back. Nothing is removed.
 ///
-/// Tuck's items are interchangeable. Roles (chevron, spacer, line, dotted line) are
-/// handed out by position, so however macOS or the user orders them, the marks
-/// always read line, then chevron.
+/// Three things had to be right, and all three were measured on macOS 27:
+///
+/// - **The width has to go up in steps.** Set it in one jump and macOS shuffles the icons
+///   sideways and keeps them on screen: a gap where the icons were, nothing hidden. So the
+///   first hide on a screen walks the width up, then remembers what worked and opens there
+///   next time, which is what stops the icons sliding across the bar on every click.
+/// - **One item can only take about half the screen.** Past that macOS ignores it, so the
+///   width is shared across several items rather than piled onto one.
+/// - **An empty status item is 16pt wide, not nothing.** A width constraint on its content
+///   view holds it open. Dropping that constraint and setting the window's size by hand
+///   takes it down to a single point, which is why Tuck leaves no gap in the bar. The trick
+///   comes from Ice, and Ice's own note is that a future macOS could take it away: if the
+///   constraint is not found, the items simply rest at 16pt as they used to.
 final class StatusBarController: NSObject, NSMenuDelegate {
     private let preferences: Preferences
     private let log = Logger(subsystem: "com.hdw.tuck", category: "menubar")
 
-    /// Every item Tuck owns, in creation order. Position decides the role, not this order.
-    private var mainItems: [NSStatusItem]
-    private var alwaysItems: [NSStatusItem] = []
+    /// Every item Tuck owns, in creation order. Position decides which is the mark.
+    private let items: [NSStatusItem]
+    /// The width constraint macOS puts on each item, kept so it can be switched off.
+    private var widthHolders: [ObjectIdentifier: NSLayoutConstraint] = [:]
 
-    // Roles. Refreshed by assignRoles() whenever positions can be trusted.
-    private var chevron: NSStatusItem
-    private var line: NSStatusItem
+    /// The item the user sees and clicks. Always the rightmost of Tuck's items.
+    private var mark: NSStatusItem
+    /// The invisible ones that do the pushing.
     private var spacers: [NSStatusItem]
-    private var dotted: NSStatusItem?
-    private var alwaysSpacers: [NSStatusItem] = []
 
-    /// Just wide enough for the line image. With a resting spacer's 16pt beside it, the pair is one icon wide.
-    private static let thinLength: CGFloat = 4
-    /// A resting spacer keeps 16pt of padding, nothing more.
-    private static let restLength: CGFloat = 0
-    /// Half the narrowest screen, minus a margin. macOS refuses anything wider than half a screen.
-    private var wideLength: CGFloat = 600
-    /// Spacers per section: enough that the last wide item can never fit on the widest screen.
-    private let spacersPerSection: Int
+    /// Small enough that macOS gives the room away rather than shuffling icons sideways.
+    private static let rampStep: CGFloat = 100
+    private static let rampDelay = 0.05
 
     private(set) var isCollapsed = false
-    private var isAlwaysHiddenRevealed = false
     private var isToggling = false
     private var autoHideTimer: Timer?
     private var rolesRefresh: DispatchWorkItem?
+    private var rampToken = 0
+    /// Where the mark is between a plus (0) and an ✕ (1).
+    private var markFraction: CGFloat = 1
+    private var markAnimation: Timer?
     private var cancellables = Set<AnyCancellable>()
     private lazy var contextMenu = makeContextMenu()
 
     var openPreferences: (() -> Void)?
 
     private enum MenuTag: Int {
-        case showHide = 1, peek, autoHide
+        case showHide = 1, autoHide
     }
 
     init(preferences: Preferences) {
         self.preferences = preferences
-        let geometry = Self.geometry(for: NSScreen.screens)
-        wideLength = geometry.wide
-        spacersPerSection = geometry.spacers
 
-        // Creation order: each new item lands to the left of the previous one.
+        // Creation order: each new item lands to the left of the previous one, so the
+        // first one made is the one the user ends up clicking.
         let first = NSStatusBar.system.statusItem(withLength: NSStatusItem.variableLength)
         first.autosaveName = "tuck.toggle"
-        let middle = (0..<geometry.spacers).map { Self.makeSpacer(name: "tuck.spacer\($0)") }
-        let last = NSStatusBar.system.statusItem(withLength: Self.thinLength)
-        last.autosaveName = "tuck.separator"
-        mainItems = [first] + middle + [last]
-        chevron = first
-        spacers = middle
-        line = last
+        let rest = (0..<StatusBarController.spacerCount(for: NSScreen.screens)).map { index -> NSStatusItem in
+            let spacer = NSStatusBar.system.statusItem(withLength: 0)
+            spacer.autosaveName = "tuck.spacer\(index)"
+            return spacer
+        }
+        items = [first] + rest
+        mark = first
+        spacers = rest
         super.init()
 
+        for item in items {
+            widthHolders[ObjectIdentifier(item)] = StatusBarController.widthHolder(of: item)
+        }
         configureRoles()
-        updateAlwaysHiddenSection()
         observePreferences()
 
         NotificationCenter.default.addObserver(
@@ -90,57 +99,67 @@ final class StatusBarController: NSObject, NSMenuDelegate {
 
     // MARK: - Geometry
 
-    private static func makeSpacer(name: String) -> NSStatusItem {
-        let item = NSStatusBar.system.statusItem(withLength: restLength)
-        item.autosaveName = name
-        return item
+    /// The most one item may ask for. Past about half the screen macOS stops making room
+    /// for it, so a width that big hides nothing at all.
+    private var widthCeiling: CGFloat {
+        let bar = NSScreen.main?.frame.width ?? NSScreen.screens.map(\.frame.width).max() ?? 1440
+        return max(200, floor(bar / 2) - 32)
     }
 
-    private static func geometry(for screens: [NSScreen]) -> (wide: CGFloat, spacers: Int) {
-        let widths = screens.map { $0.frame.width }
-        let narrowest = widths.min() ?? 1440
-        let widest = widths.max() ?? 1440
-        let wide = max(200, floor(narrowest / 2) - 32)
-        let windowWidth = wide + 16
-        // Free space on the widest screen is at most its width minus the Apple menu.
-        // One extra so a MacBook screen plus a larger external display still works after a relaunch.
-        let spacers = max(1, Int((widest - 60) / windowWidth)) + 1
-        return (wide, spacers)
+    /// Enough items to fill the widest bar this Mac can show, plus one to spare.
+    private static func spacerCount(for screens: [NSScreen]) -> Int {
+        let widest = screens.map(\.frame.width).max() ?? 1440
+        let ceiling = max(200, floor(widest / 2) - 32)
+        return max(2, Int((widest / ceiling).rounded(.up)) + 1)
+    }
+
+    /// The constraint that keeps a status item from reaching zero width.
+    private static func widthHolder(of item: NSStatusItem) -> NSLayoutConstraint? {
+        guard
+            let button = item.button,
+            let constraints = button.window?.contentView?.constraintsAffectingLayout(for: .horizontal)
+        else {
+            return nil
+        }
+        return constraints.first { $0.secondItem === button.superview }
+    }
+
+    /// Takes an item down to a single point, so it leaves no gap between the icons.
+    private func shrink(_ item: NSStatusItem) {
+        item.length = 0
+        guard let holder = widthHolders[ObjectIdentifier(item)] else { return }
+        holder.isActive = false
+        if let window = item.button?.window {
+            var size = window.frame.size
+            size.width = 1
+            window.setContentSize(size)
+        }
+    }
+
+    private func widen(_ item: NSStatusItem, to width: CGFloat) {
+        widthHolders[ObjectIdentifier(item)]?.isActive = true
+        item.length = width
     }
 
     // MARK: - Roles
 
-    /// Hands out roles by position, rightmost first. Returns false while positions cannot be trusted.
+    /// The rightmost of Tuck's items is the mark; the rest push. macOS and the user both
+    /// move these around, so the roles are read back from where they actually are.
     @discardableResult
     private func assignRoles() -> Bool {
         guard !isCollapsed else { return false }
-        // Hidden items have stale positions, so the always-hidden section only joins in while revealed.
-        let includeAlways = !alwaysItems.isEmpty && isAlwaysHiddenRevealed
         var positioned: [(item: NSStatusItem, x: CGFloat)] = []
-        for item in mainItems + (includeAlways ? alwaysItems : []) {
+        for item in items {
             guard let x = originX(of: item) else { return false }
             positioned.append((item, x))
         }
         let sorted = positioned.sorted { $0.x > $1.x }.map(\.item)
-        var index = 0
-        func take(_ count: Int) -> [NSStatusItem] {
-            defer { index += count }
-            return Array(sorted[index..<index + count])
-        }
-        let newChevron = take(1)[0]
-        let newSpacers = take(spacersPerSection)
-        let newLine = take(1)[0]
-        let newAlwaysSpacers = includeAlways ? take(spacersPerSection) : alwaysSpacers
-        let newDotted = includeAlways ? take(1)[0] : dotted
+        guard let newMark = sorted.first else { return false }
+        let newSpacers = Array(sorted.dropFirst())
 
-        let unchanged = newChevron === chevron && newLine === line && newDotted === dotted
-            && newSpacers.elementsEqual(spacers, by: ===) && newAlwaysSpacers.elementsEqual(alwaysSpacers, by: ===)
-        if !unchanged {
-            chevron = newChevron
+        if newMark !== mark || !newSpacers.elementsEqual(spacers, by: ===) {
+            mark = newMark
             spacers = newSpacers
-            line = newLine
-            alwaysSpacers = newAlwaysSpacers
-            dotted = newDotted
             configureRoles()
             log.notice("Roles reassigned by position")
         }
@@ -149,53 +168,136 @@ final class StatusBarController: NSObject, NSMenuDelegate {
 
     /// Gives every item the look and behaviour of its current role.
     private func configureRoles() {
-        for item in mainItems + alwaysItems {
+        for item in items {
             item.menu = nil
-            item.length = Self.restLength
             if let button = item.button {
                 button.target = nil
                 button.action = nil
                 button.image = nil
                 button.toolTip = nil
-                button.appearsDisabled = false
             }
         }
-        if let button = chevron.button {
+        if let button = mark.button {
             button.target = self
-            button.action = #selector(toggleClicked(_:))
+            button.action = #selector(markClicked)
             _ = button.sendAction(on: [.leftMouseUp, .rightMouseUp])
-            button.toolTip = "Click to hide or show icons. Option-click to peek at the always-hidden ones. Right-click for options."
-        }
-        line.menu = contextMenu
-        line.button?.toolTip = "Hold ⌘ and drag icons to the left of this line to hide them."
-        if let dotted {
-            dotted.menu = contextMenu
-            dotted.button?.appearsDisabled = true
-            dotted.button?.toolTip = "Icons left of this dotted line stay hidden even while the rest are showing. Option-click the chevron to peek."
+            button.toolTip = "Click to hide or show the icons to the left. Right-click for options."
         }
         applyLayout()
     }
 
-    /// Sets every item's width and image from the current state. The only place widths change.
+    /// Sets every item's width and the mark's picture from the current state.
     private func applyLayout() {
-        let hideMain = isCollapsed
-        chevron.length = NSStatusItem.variableLength
-        chevron.button?.image = hideMain ? MenuBarImages.chevronLeft : MenuBarImages.chevronRight
-        for spacer in spacers {
-            spacer.length = hideMain ? wideLength : Self.restLength
-        }
-        line.length = hideMain ? wideLength : Self.thinLength
-        line.button?.image = hideMain ? nil : MenuBarImages.separator
+        widen(mark, to: NSStatusItem.variableLength)
+        setMark(to: isCollapsed ? 0 : 1)
 
-        let hideAlways = hideMain || !isAlwaysHiddenRevealed
-        for spacer in alwaysSpacers {
-            spacer.length = hideAlways ? wideLength : Self.restLength
-        }
-        if let dotted {
-            dotted.length = hideAlways ? wideLength : Self.thinLength
-            dotted.button?.image = hideAlways ? nil : MenuBarImages.dottedSeparator
+        rampToken += 1
+        if isCollapsed {
+            grow(spacers, token: rampToken, total: startingWidth)
+        } else {
+            for spacer in spacers { shrink(spacer) }
         }
     }
+
+    // MARK: - Hiding
+
+    /// Widens the spacers a step at a time until the bar is full.
+    ///
+    /// The step where the far edge stops moving is the step where the bar is full, and a
+    /// little past that clears the ‹‹ overflow arrows macOS shows when items no longer fit.
+    private func grow(_ items: [NSStatusItem], token: Int, total: CGFloat, lastEdge: CGFloat = .greatestFiniteMagnitude) {
+        guard !items.isEmpty, rampToken == token else { return }
+        share(total, across: items)
+
+        DispatchQueue.main.asyncAfter(deadline: .now() + Self.rampDelay) { [weak self] in
+            guard let self, self.rampToken == token else { return }
+            let edge = items
+                .filter { $0.length > 0 }
+                .compactMap { $0.button?.window?.frame.origin.x }
+                .filter { $0 > 0 }
+                .min() ?? 0
+            let limit = self.widthCeiling * CGFloat(items.count)
+
+            if edge >= lastEdge - 1 || total >= limit {
+                let settled = min(total + 200, limit)
+                self.share(settled, across: items)
+                self.remember(total)
+                self.log.notice("Hidden with \(Int(settled))pt, opened at \(Int(self.startingWidth))")
+                return
+            }
+            self.grow(items, token: token, total: min(total + Self.rampStep, limit), lastEdge: edge)
+        }
+    }
+
+    /// Shares one total width across the spacers, filling each to its ceiling in turn.
+    private func share(_ total: CGFloat, across items: [NSStatusItem]) {
+        var left = total
+        for item in items {
+            let take = min(left, widthCeiling)
+            if take > 0 {
+                widen(item, to: take)
+            } else {
+                shrink(item)
+            }
+            left -= take
+        }
+    }
+
+    /// Where the ramp begins. The first hide on a bar walks up from nothing, which is the
+    /// icons visibly sliding away. After that it opens straight at the width that worked
+    /// last time, so the icons go in one frame and the ramp only confirms the bar is full.
+    private var startingWidth: CGFloat {
+        let bar = Double(NSScreen.main?.frame.width ?? 0)
+        guard preferences.hidingBarWidth == bar, preferences.hidingWidth > 200 else {
+            return Self.rampStep
+        }
+        return max(Self.rampStep, CGFloat(preferences.hidingWidth))
+    }
+
+    /// Keeps the narrowest width that has done the job on this bar. Narrowest, because the
+    /// number creeps up otherwise, and too wide is a width macOS ignores.
+    private func remember(_ width: CGFloat) {
+        let bar = Double(NSScreen.main?.frame.width ?? 0)
+        let known = preferences.hidingBarWidth == bar ? preferences.hidingWidth : 0
+        preferences.hidingWidth = known > 200 ? min(known, Double(width)) : Double(width)
+        preferences.hidingBarWidth = bar
+    }
+
+    // MARK: - The mark
+
+    /// Turns the plus into an ✕, or back: 45 degrees in a fifth of a second. Called on
+    /// every layout pass, so a mark already in the right place is only redrawn.
+    private func setMark(to target: CGFloat) {
+        markAnimation?.invalidate()
+        markAnimation = nil
+        mark.button?.image = Mark.image(fraction: markFraction)
+        guard abs(target - markFraction) > 0.001 else { return }
+
+        let start = markFraction
+        let began = CACurrentMediaTime()
+        let duration = 0.2
+        let timer = Timer(timeInterval: 1.0 / 60.0, repeats: true) { [weak self] timer in
+            guard let self else {
+                timer.invalidate()
+                return
+            }
+            let progress = min(1, (CACurrentMediaTime() - began) / duration)
+            // Ease in and out, so it starts and lands softly.
+            let eased = progress < 0.5
+                ? 2 * progress * progress
+                : 1 - pow(-2 * progress + 2, 2) / 2
+            self.markFraction = start + (target - start) * CGFloat(eased)
+            self.mark.button?.image = Mark.image(fraction: self.markFraction)
+            if progress >= 1 {
+                timer.invalidate()
+                self.markAnimation = nil
+            }
+        }
+        RunLoop.main.add(timer, forMode: .common)
+        markAnimation = timer
+    }
+
+    // MARK: - Watching the bar
 
     /// Re-check roles a moment after something moved, but only while showing.
     private func scheduleRolesRefresh(after delay: TimeInterval = 0.4) {
@@ -210,27 +312,10 @@ final class StatusBarController: NSObject, NSMenuDelegate {
 
     @objc private func someWindowMoved(_ notification: Notification) {
         guard !isCollapsed, let window = notification.object as? NSWindow else { return }
-        let ours = (mainItems + alwaysItems).contains { $0.button?.window === window }
-        if ours { scheduleRolesRefresh() }
+        if items.contains(where: { $0.button?.window === window }) { scheduleRolesRefresh() }
     }
 
     private func observePreferences() {
-        preferences.$alwaysHiddenEnabled
-            .dropFirst()
-            .receive(on: DispatchQueue.main)
-            .sink { [weak self] enabled in
-                guard let self else { return }
-                self.updateAlwaysHiddenSection()
-                if enabled {
-                    // Show the new dotted line so icons can be dragged past it.
-                    self.isAlwaysHiddenRevealed = true
-                    self.applyLayout()
-                    if self.isCollapsed { self.expand() }
-                    self.scheduleRolesRefresh(after: 0.8)
-                }
-            }
-            .store(in: &cancellables)
-
         preferences.$autoHide
             .dropFirst()
             .receive(on: DispatchQueue.main)
@@ -259,13 +344,10 @@ final class StatusBarController: NSObject, NSMenuDelegate {
 
     // MARK: - Clicks
 
-    @objc private func toggleClicked(_ sender: Any?) {
-        let event = NSApp.currentEvent
-        if event?.type == .rightMouseUp {
-            chevron.menu = contextMenu
-            chevron.button?.performClick(nil)
-        } else if event?.modifierFlags.contains(.option) == true {
-            peekAlwaysHidden()
+    @objc private func markClicked() {
+        if NSApp.currentEvent?.type == .rightMouseUp {
+            mark.menu = contextMenu
+            mark.button?.performClick(nil)
         } else {
             toggle()
         }
@@ -289,13 +371,11 @@ final class StatusBarController: NSObject, NSMenuDelegate {
             return
         }
         isCollapsed = true
-        isAlwaysHiddenRevealed = false
         autoHideTimer?.invalidate()
         rolesRefresh?.cancel()
         applyLayout()
         if preferences.useFullMenuBar { leaveFullMenuBar() }
         if !preferences.hasHiddenBefore { preferences.hasHiddenBefore = true }
-        logPositions("hidden")
     }
 
     func expand() {
@@ -304,24 +384,27 @@ final class StatusBarController: NSObject, NSMenuDelegate {
         applyLayout()
         if preferences.useFullMenuBar { takeFullMenuBar() }
         scheduleAutoHideIfNeeded()
+        // The bar shuffles as the icons come back, so read the roles again once it settles.
         scheduleRolesRefresh(after: 0.6)
-        logPositions("shown")
+        log.notice("Icons shown: mark x=\(Int(self.mark.button?.window?.frame.origin.x ?? -1))")
     }
 
-    /// Option-click: show the always-hidden section too, or tuck it away again.
-    private func peekAlwaysHidden() {
-        guard preferences.alwaysHiddenEnabled, dotted != nil else {
-            toggle()
-            return
+    private func collapseWhenReady(attempt: Int) {
+        DispatchQueue.main.asyncAfter(deadline: .now() + 0.5) { [weak self] in
+            guard let self, !self.isCollapsed else { return }
+            if self.assignRoles() {
+                // A fresh install stays open until the user hides on purpose.
+                if self.preferences.hasHiddenBefore {
+                    self.collapse()
+                } else {
+                    self.log.notice("First launch: staying open")
+                }
+            } else if attempt < 6 {
+                self.collapseWhenReady(attempt: attempt + 1)
+            } else {
+                self.log.notice("Did not hide: the menu bar never settled.")
+            }
         }
-        isAlwaysHiddenRevealed.toggle()
-        applyLayout()
-        if isAlwaysHiddenRevealed, isCollapsed {
-            expand()
-        } else {
-            scheduleAutoHideIfNeeded()
-        }
-        log.notice("Always-hidden section \(self.isAlwaysHiddenRevealed ? "revealed" : "tucked away", privacy: .public)")
     }
 
     // MARK: - Full menu bar mode
@@ -342,7 +425,7 @@ final class StatusBarController: NSObject, NSMenuDelegate {
     private func scheduleAutoHideIfNeeded() {
         autoHideTimer?.invalidate()
         autoHideTimer = nil
-        guard preferences.autoHide, preferences.hasHiddenBefore, !isCollapsed else { return }
+        guard preferences.autoHide, !isCollapsed else { return }
         let timer = Timer(timeInterval: preferences.autoHideSeconds, repeats: false) { [weak self] _ in
             self?.collapse()
         }
@@ -350,65 +433,39 @@ final class StatusBarController: NSObject, NSMenuDelegate {
         autoHideTimer = timer
     }
 
-    private func collapseWhenReady(attempt: Int) {
-        DispatchQueue.main.asyncAfter(deadline: .now() + 0.5) { [weak self] in
-            guard let self else { return }
-            if self.assignRoles() {
-                // A fresh install stays open until the user hides on purpose.
-                if self.preferences.hasHiddenBefore {
-                    self.collapse()
-                } else {
-                    self.logPositions("first launch, staying open")
-                }
-            } else if attempt < 6 {
-                self.collapseWhenReady(attempt: attempt + 1)
-            } else {
-                self.log.notice("Did not hide at launch: the menu bar never settled.")
-            }
-        }
-    }
-
-    // MARK: - Always-hidden section
-
-    private func updateAlwaysHiddenSection() {
-        if preferences.alwaysHiddenEnabled {
-            guard alwaysItems.isEmpty else { return }
-            // New items land at the far left: spacers first, then the dotted line beyond them.
-            let spacers = (0..<spacersPerSection).map { Self.makeSpacer(name: "tuck.alwaysSpacer\($0)") }
-            let dotted = NSStatusBar.system.statusItem(withLength: Self.thinLength)
-            dotted.autosaveName = "tuck.alwaysHidden"
-            alwaysItems = spacers + [dotted]
-            alwaysSpacers = spacers
-            self.dotted = dotted
-        } else if !alwaysItems.isEmpty {
-            alwaysItems.forEach { NSStatusBar.system.removeStatusItem($0) }
-            alwaysItems = []
-            alwaysSpacers = []
-            dotted = nil
-            isAlwaysHiddenRevealed = false
-        }
-        configureRoles()
-    }
-
     // MARK: - Positions
 
-    private func logPositions(_ state: String) {
-        let chevronX = originX(of: chevron).map { Int($0) } ?? -1
-        let lineX = originX(of: line).map { Int($0) } ?? -1
-        log.notice("Icons \(state, privacy: .public): chevron x=\(chevronX) line x=\(lineX) wide=\(Int(self.wideLength)) spacers=\(self.spacersPerSection)")
-    }
-
-    /// Each menu bar item lives in its own small window. Comparing their x origins
-    /// tells us the order they are in. Only meaningful while showing.
-    private func originX(of item: NSStatusItem?) -> CGFloat? {
-        guard let window = item?.button?.window, window.frame.width > 0, window.frame.origin.x > 0 else { return nil }
+    /// Each menu bar item lives in its own small window. Comparing their x origins tells us
+    /// the order they are in. Only meaningful while showing.
+    private func originX(of item: NSStatusItem) -> CGFloat? {
+        guard let window = item.button?.window, window.frame.width > 0, window.frame.origin.x > 0 else { return nil }
         return window.frame.origin.x
     }
 
     @objc private func screenParametersChanged() {
-        wideLength = Self.geometry(for: NSScreen.screens).wide
+        log.notice("Screens changed: one item may now take \(Int(self.widthCeiling))pt")
+        guard isCollapsed else {
+            applyLayout()
+            return
+        }
+        // Plug in a different display and the hide is still the one measured for the old
+        // bar. Let everything back out and hide again once the new bar has settled.
+        isCollapsed = false
         applyLayout()
-        log.notice("Screens changed: wide items are now \(Int(self.wideLength))pt")
+        hideAgainAfterScreenChange(attempt: 0)
+    }
+
+    private func hideAgainAfterScreenChange(attempt: Int) {
+        DispatchQueue.main.asyncAfter(deadline: .now() + 0.5) { [weak self] in
+            guard let self, !self.isCollapsed else { return }
+            if self.assignRoles() {
+                self.collapse()
+            } else if attempt < 6 {
+                self.hideAgainAfterScreenChange(attempt: attempt + 1)
+            } else {
+                self.log.notice("Did not hide after the screen changed: the menu bar never settled.")
+            }
+        }
     }
 
     // MARK: - Context menu
@@ -421,11 +478,6 @@ final class StatusBarController: NSObject, NSMenuDelegate {
         showHide.target = self
         showHide.tag = MenuTag.showHide.rawValue
         menu.addItem(showHide)
-
-        let peek = NSMenuItem(title: "Peek at always-hidden icons", action: #selector(menuPeek), keyEquivalent: "")
-        peek.target = self
-        peek.tag = MenuTag.peek.rawValue
-        menu.addItem(peek)
 
         let autoHide = NSMenuItem(title: "Hide again automatically", action: #selector(menuToggleAutoHide), keyEquivalent: "")
         autoHide.target = self
@@ -445,20 +497,17 @@ final class StatusBarController: NSObject, NSMenuDelegate {
 
     func menuNeedsUpdate(_ menu: NSMenu) {
         menu.item(withTag: MenuTag.showHide.rawValue)?.title = isCollapsed ? "Show hidden icons" : "Hide icons"
-        menu.item(withTag: MenuTag.peek.rawValue)?.isHidden = !preferences.alwaysHiddenEnabled
-        menu.item(withTag: MenuTag.peek.rawValue)?.title = isAlwaysHiddenRevealed ? "Tuck away always-hidden icons" : "Peek at always-hidden icons"
         menu.item(withTag: MenuTag.autoHide.rawValue)?.state = preferences.autoHide ? .on : .off
     }
 
     func menuDidClose(_ menu: NSMenu) {
-        // The chevron only borrows the menu for a right-click. Left-clicks must reach the action.
+        // The mark only borrows the menu for a right-click. Left-clicks must reach the action.
         DispatchQueue.main.async { [weak self] in
-            self?.chevron.menu = nil
+            self?.mark.menu = nil
         }
     }
 
     @objc private func menuToggle() { toggle() }
-    @objc private func menuPeek() { peekAlwaysHidden() }
     @objc private func menuToggleAutoHide() { preferences.autoHide.toggle() }
     @objc private func menuOpenPreferences() { openPreferences?() }
 }
