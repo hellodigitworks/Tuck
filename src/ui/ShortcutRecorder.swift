@@ -31,14 +31,25 @@ final class ShortcutRecorderView: NSView {
     private var pendingModifiers: NSEvent.ModifierFlags = []
     private var isRecording = false {
         didSet {
-            button.highlight(isRecording)
+            layer?.borderColor = (isRecording ? ShortcutRecorderView.accent : ShortcutRecorderView.edge).cgColor
             refreshTitle()
         }
     }
 
+    /// The house outline: white edge, orange while it listens.
+    private static let edge = NSColor(white: 1, alpha: 0.35)
+    private static let accent = NSColor(red: 1, green: 0.18, blue: 0, alpha: 1)
+
     override init(frame: NSRect) {
         super.init(frame: frame)
-        button.bezelStyle = .rounded
+        wantsLayer = true
+        layer?.cornerRadius = 12
+        layer?.cornerCurve = .continuous
+        layer?.borderWidth = 1
+        layer?.borderColor = ShortcutRecorderView.edge.cgColor
+        button.isBordered = false
+        button.font = .systemFont(ofSize: 13)
+        button.contentTintColor = .white
         button.target = self
         button.action = #selector(buttonClicked)
         button.translatesAutoresizingMaskIntoConstraints = false
@@ -48,6 +59,7 @@ final class ShortcutRecorderView: NSView {
             button.trailingAnchor.constraint(equalTo: trailingAnchor),
             button.topAnchor.constraint(equalTo: topAnchor),
             button.bottomAnchor.constraint(equalTo: bottomAnchor),
+            heightAnchor.constraint(equalToConstant: 28),
         ])
         refreshTitle()
     }
@@ -61,7 +73,7 @@ final class ShortcutRecorderView: NSView {
 
     override var intrinsicContentSize: NSSize {
         let size = button.intrinsicContentSize
-        return NSSize(width: max(160, size.width), height: size.height)
+        return NSSize(width: max(160, size.width + 24), height: 28)
     }
 
     @objc private func buttonClicked() {

@@ -7,8 +7,8 @@ cd "$(dirname "$0")/.."
 
 APP_NAME="Tuck"
 BUNDLE_ID="com.hdw.tuck"
-VERSION="1.0.0"
-BUILD_NUMBER="1"
+VERSION="1.1.0"
+BUILD_NUMBER="2"
 
 # Build outside the Google Drive folder: Drive sync corrupts incremental
 # build state (files appear where directories should be).

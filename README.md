@@ -1,5 +1,7 @@
 # Tuck
 
+![Tuck](docs/images/hero.png)
+
 Hides the menu bar icons you are not using right now. Drag them to the left of Tuck's
 mark, click it, and they are out of sight. Click again and they are back. Nothing is
 removed and nothing is running except one small menu bar app.
@@ -8,6 +10,8 @@ One mark and nothing else: a plus while the icons are hidden, an ✕ while they 
 showing. It rotates between the two. No line, no gap, nothing else in the bar.
 
 ## How it hides
+
+![A crowded menu bar, then the same bar with Tuck](docs/images/menubar.png)
 
 macOS lays out menu bar icons from the right, and an icon that does not fit drops off the
 left end. Tuck keeps a few empty items just left of its mark and widens them until the bar
@@ -30,8 +34,8 @@ Three details, all measured on macOS 27:
 
 ## Get it
 
-Download `Tuck-1.0.0.zip` from the latest release, unzip it, and move `Tuck.app` into
-`/Applications`.
+Download the zip from the [latest release](https://github.com/hellodigitworks/Tuck/releases/latest),
+unzip it, and move `Tuck.app` into `/Applications`.
 
 Tuck is not signed with an Apple developer certificate, so the first open takes three
 clicks:
@@ -79,10 +83,17 @@ zsh scripts/make-app.sh
 ```
 
 Add `--install` to copy the finished app into `/Applications`, or `--release` to also write
-`build/Tuck-1.0.0.zip`, the file to attach to a GitHub release. Tests:
+`build/Tuck-<version>.zip`, the file to attach to a GitHub release. Tests:
 
 ```bash
 zsh scripts/test.sh
+```
+
+The pictures above, the social card and the shot for hdw lab all come from one script, so
+none of them is ever edited by hand:
+
+```bash
+zsh scripts/make-images.sh
 ```
 
 ## Folders
@@ -92,7 +103,8 @@ zsh scripts/test.sh
 | `src/data/` | Settings, the keyboard shortcut, start at login. No screen code |
 | `src/app/` | App start-up and the menu bar items |
 | `src/ui/` | The mark artwork, the preferences window and the shortcut recorder |
-| `scripts/` | Build script, test script and icon generator |
+| `scripts/` | Build script, test script, icon generator and image generator |
 | `icons/` | Generated app icon |
 | `tests/` | Checks for the settings and shortcut logic |
+| `docs/images/` | The pictures in this README, the social card and the lab shot. Generated |
 | `build/` | The finished app and the release zip (generated, not committed) |
