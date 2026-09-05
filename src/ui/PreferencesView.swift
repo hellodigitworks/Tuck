@@ -27,6 +27,18 @@ struct PreferencesView: View {
             }
             .fixedSize(horizontal: false, vertical: true)
 
+            VStack(alignment: .leading, spacing: 4) {
+                Text("The first time, nothing hides until you click ✕. After that Tuck starts hidden.")
+                Text("Right-click the mark for the menu.")
+                Text("From Raycast, Shortcuts or a script:")
+                Text("/Applications/Tuck.app/Contents/MacOS/Tuck --toggle")
+                    .font(.system(.caption, design: .monospaced))
+            }
+            .font(.caption)
+            .foregroundStyle(.secondary)
+            .textSelection(.enabled)
+            .fixedSize(horizontal: false, vertical: true)
+
             Divider()
 
             VStack(alignment: .leading, spacing: 12) {
@@ -34,7 +46,7 @@ struct PreferencesView: View {
                 if let message = login.message {
                     note(message)
                 }
-                Toggle("Show this window when Tuck starts", isOn: $preferences.showPreferencesOnLaunch)
+                Toggle("Show this window every time Tuck starts", isOn: $preferences.showPreferencesOnLaunch)
                 HStack(spacing: 8) {
                     Toggle("Hide again automatically after", isOn: $preferences.autoHide)
                     Picker("", selection: $preferences.autoHideSeconds) {

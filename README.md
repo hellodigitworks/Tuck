@@ -28,9 +28,31 @@ Three details, all measured on macOS 27:
   [Ice](https://github.com/jordanbaird/Ice); its own note is that a future macOS could take
   it away, so if the constraint is missing the items simply rest at 16pt as they used to.
 
+## Get it
+
+Download `Tuck-1.0.0.zip` from the latest release, unzip it, and move `Tuck.app` into
+`/Applications`.
+
+Tuck is not signed with an Apple developer certificate, so the first open takes three
+clicks:
+
+1. Double-click Tuck. macOS says it could not verify the app. Click **Done**.
+2. Open System Settings → Privacy & Security, scroll down, and click **Open Anyway**.
+3. Click **Open Anyway** once more. Tuck's plus appears in the menu bar.
+
+On macOS 13 or 14, right-click the app and choose Open instead. Or skip all of it with one
+line in Terminal:
+
+```bash
+xattr -d com.apple.quarantine /Applications/Tuck.app
+```
+
+Needs macOS 13 or later on Apple silicon. Built and tested on macOS 27; older versions are
+untested.
+
 ## Use it
 
-Open `build/Tuck.app`. A plus appears on the right of the menu bar.
+A plus appears on the right of the menu bar.
 
 - Hold ⌘ and drag any icon to the left of the mark. It now hides with the rest.
 - Click the mark to hide or show them. `+` means hidden, `✕` means showing.
@@ -56,7 +78,8 @@ macOS can always find it.
 zsh scripts/make-app.sh
 ```
 
-Add `--install` to copy the finished app into `/Applications`. Tests:
+Add `--install` to copy the finished app into `/Applications`, or `--release` to also write
+`build/Tuck-1.0.0.zip`, the file to attach to a GitHub release. Tests:
 
 ```bash
 zsh scripts/test.sh
@@ -72,4 +95,4 @@ zsh scripts/test.sh
 | `scripts/` | Build script, test script and icon generator |
 | `icons/` | Generated app icon |
 | `tests/` | Checks for the settings and shortcut logic |
-| `build/` | The finished app (generated, not committed) |
+| `build/` | The finished app and the release zip (generated, not committed) |

@@ -57,7 +57,7 @@ do {
     let (defaults, name) = freshDefaults()
     defer { defaults.removePersistentDomain(forName: name) }
     let prefs = Preferences(defaults: defaults)
-    check(prefs.showPreferencesOnLaunch == true, "first launch shows the window")
+    check(prefs.showPreferencesOnLaunch == false, "window is not forced on every launch")
     check(prefs.autoHide == true, "auto hide on by default")
     check(prefs.autoHideSeconds == 10, "auto hide after 10 seconds by default")
     check(prefs.useFullMenuBar == false, "full menu bar off by default")

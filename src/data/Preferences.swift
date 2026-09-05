@@ -67,7 +67,7 @@ public final class Preferences: ObservableObject {
     public init(defaults: UserDefaults = .standard) {
         self.defaults = defaults
         defaults.register(defaults: [
-            Key.showPreferencesOnLaunch: true,
+            Key.showPreferencesOnLaunch: false,
             Key.autoHide: true,
             Key.autoHideSeconds: Preferences.defaultAutoHideSeconds,
             Key.useFullMenuBar: false,

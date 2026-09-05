@@ -28,7 +28,8 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
             self, selector: #selector(handleToggleNotification),
             name: AppDelegate.toggleNotification, object: nil)
 
-        if preferences.showPreferencesOnLaunch {
+        // The window shows itself until the user has hidden icons once. After that, only if asked.
+        if preferences.showPreferencesOnLaunch || !preferences.hasHiddenBefore {
             showPreferences(nil)
         }
     }

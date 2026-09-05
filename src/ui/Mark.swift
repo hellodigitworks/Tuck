@@ -15,9 +15,6 @@ enum Mark {
         draw(fraction: CGFloat(step) / 24)
     }
 
-    static var plus: NSImage { frames.first! }
-    static var cross: NSImage { frames.last! }
-
     static func image(fraction: CGFloat) -> NSImage {
         frames[index(for: fraction)]
     }

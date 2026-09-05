@@ -1,5 +1,7 @@
 #!/bin/zsh
-# Builds Tuck.app from source. Run: zsh scripts/make-app.sh [--install]
+# Builds Tuck.app from source. Run: zsh scripts/make-app.sh [--install] [--release]
+#   --install  copy the finished app into /Applications
+#   --release  also write build/Tuck-<version>.zip, the file to attach to a GitHub release
 set -e
 cd "$(dirname "$0")/.."
 
@@ -17,6 +19,8 @@ APP="build/$APP_NAME.app"
 rm -rf "$APP"
 mkdir -p "$APP/Contents/MacOS" "$APP/Contents/Resources"
 cp "$SCRATCH/release/Tuck" "$APP/Contents/MacOS/Tuck"
+# Symbol names are only useful to a debugger. Dropping them halves the binary.
+strip "$APP/Contents/MacOS/Tuck"
 
 if [ ! -f icons/AppIcon.icns ]; then
   swift scripts/make-icon.swift
@@ -54,6 +58,8 @@ cat > "$APP/Contents/Info.plist" <<PLIST
     <true/>
     <key>NSPrincipalClass</key>
     <string>NSApplication</string>
+    <key>NSHumanReadableCopyright</key>
+    <string>© 2026 hdw</string>
 </dict>
 </plist>
 PLIST
@@ -62,11 +68,26 @@ PLIST
 codesign --force --deep --sign - "$APP"
 echo "Built: $APP"
 
-# Install to /Applications so it behaves like a real app and can start at login.
-if [ "${1:-}" = "--install" ]; then
-  pkill -x Tuck 2>/dev/null || true
-  sleep 1
-  rm -rf "/Applications/$APP_NAME.app"
-  cp -R "$APP" "/Applications/$APP_NAME.app"
-  echo "Installed: /Applications/$APP_NAME.app"
-fi
+for flag in "$@"; do
+  case "$flag" in
+    # Install to /Applications so it behaves like a real app and can start at login.
+    --install)
+      pkill -x Tuck 2>/dev/null || true
+      sleep 1
+      rm -rf "/Applications/$APP_NAME.app"
+      cp -R "$APP" "/Applications/$APP_NAME.app"
+      echo "Installed: /Applications/$APP_NAME.app"
+      ;;
+    # The zip people download. ditto keeps the bundle intact, unlike plain zip.
+    --release)
+      ZIP="build/$APP_NAME-$VERSION.zip"
+      rm -f "$ZIP"
+      ditto -c -k --keepParent "$APP" "$ZIP"
+      echo "Release: $ZIP ($(du -h "$ZIP" | cut -f1))"
+      ;;
+    *)
+      echo "Unknown flag: $flag" >&2
+      exit 1
+      ;;
+  esac
+done

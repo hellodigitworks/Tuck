@@ -19,8 +19,6 @@ public final class HotKeyCenter {
         }
     }
 
-    public var isRegistered: Bool { hotKeyRef != nil }
-
     /// Replaces whatever shortcut was registered before. Pass nil to have none.
     public func register(_ combo: KeyCombo?) {
         unregister()
