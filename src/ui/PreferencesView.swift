@@ -79,8 +79,6 @@ struct PreferencesView: View {
                 .toggleStyle(Check())
             }
 
-            Spacer(minLength: 0)
-
             HStack(spacing: 16) {
                 Text("Tuck \(version)")
                     .monospacedDigit()
@@ -106,9 +104,11 @@ struct PreferencesView: View {
         .tint(Ink.text)
         .padding(.top, 34)
         .padding(.horizontal, 30)
-        .padding(.bottom, 20)
-        .frame(maxWidth: 760, alignment: .topLeading)
-        .frame(minWidth: 440, maxWidth: .infinity, minHeight: 560, maxHeight: .infinity, alignment: .topLeading)
+        .padding(.bottom, 24)
+        // One block, no wider than a comfortable line, sitting in the middle of whatever
+        // size the window is. Grow the window and the block just gets more room around it.
+        .frame(maxWidth: 620)
+        .frame(minWidth: 440, maxWidth: .infinity, minHeight: 600, maxHeight: .infinity, alignment: .center)
         .background(Ink.paper)
         .onAppear { login.refresh() }
     }

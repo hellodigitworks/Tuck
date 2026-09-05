@@ -9,7 +9,7 @@ final class PreferencesWindowController: NSWindowController {
 
     private init() {
         let window = NSWindow(
-            contentRect: NSRect(x: 0, y: 0, width: 500, height: 600),
+            contentRect: NSRect(x: 0, y: 0, width: 500, height: 620),
             styleMask: [.titled, .closable, .miniaturizable, .resizable, .fullSizeContentView],
             backing: .buffered,
             defer: false)
@@ -21,10 +21,10 @@ final class PreferencesWindowController: NSWindowController {
         window.isMovableByWindowBackground = true
         window.isReleasedWhenClosed = false
         // Small enough for a laptop, never so small that a line has to break twice.
-        window.contentMinSize = NSSize(width: 440, height: 560)
+        window.contentMinSize = NSSize(width: 440, height: 600)
         window.contentViewController = NSHostingController(
             rootView: PreferencesView(preferences: .shared, login: LoginItemModel(), updates: .shared))
-        window.setContentSize(NSSize(width: 500, height: 600))
+        window.setContentSize(NSSize(width: 500, height: 620))
         window.setFrameAutosaveName("TuckPreferences")
         super.init(window: window)
     }
