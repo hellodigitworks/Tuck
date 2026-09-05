@@ -29,7 +29,6 @@ WEB.mkdir(parents=True, exist_ok=True)
 BASE = "https://github.com/google/fonts/raw/main/ofl"
 SOURCES = {
     "Fraunces.ttf": f"{BASE}/fraunces/Fraunces%5BSOFT%2CWONK%2Copsz%2Cwght%5D.ttf",
-    "Fraunces-Italic.ttf": f"{BASE}/fraunces/Fraunces-Italic%5BSOFT%2CWONK%2Copsz%2Cwght%5D.ttf",
     "Inter.ttf": f"{BASE}/inter/Inter%5Bopsz%2Cwght%5D.ttf",
     "OFL-Fraunces.txt": f"{BASE}/fraunces/OFL.txt",
     "OFL-Inter.txt": f"{BASE}/inter/OFL.txt",
@@ -89,8 +88,6 @@ fetch()
 # than default and without the wonky glyphs. Inter at text size, regular and medium.
 build("Fraunces.ttf", {"wght": 400, "opsz": 48, "SOFT": 50, "WONK": 0},
       "Fraunces", "Regular", "Fraunces-Regular", APP / "Fraunces-Regular.ttf")
-build("Fraunces-Italic.ttf", {"wght": 400, "opsz": 48, "SOFT": 50, "WONK": 0},
-      "Fraunces", "Italic", "Fraunces-Italic", APP / "Fraunces-Italic.ttf")
 build("Inter.ttf", {"wght": 400, "opsz": 14}, "Inter", "Regular", "Inter-Regular", APP / "Inter-Regular.ttf")
 build("Inter.ttf", {"wght": 500, "opsz": 14}, "Inter", "Medium", "Inter-Medium", APP / "Inter-Medium.ttf")
 
@@ -98,8 +95,6 @@ build("Inter.ttf", {"wght": 500, "opsz": 14}, "Inter", "Medium", "Inter-Medium",
 # Inter keeps a weight range so one file covers body and labels.
 build("Fraunces.ttf", {"wght": 400, "SOFT": 50, "WONK": 0},
       "Fraunces", "Regular", "Fraunces-Regular", WEB / "fraunces.woff2", flavor="woff2")
-build("Fraunces-Italic.ttf", {"wght": 400, "SOFT": 50, "WONK": 0},
-      "Fraunces", "Italic", "Fraunces-Italic", WEB / "fraunces-italic.woff2", flavor="woff2")
 build("Inter.ttf", {"wght": (400, 700), "opsz": 14}, "Inter", "Regular", "Inter-Regular", WEB / "inter.woff2", flavor="woff2")
 
 for licence in ("OFL-Fraunces.txt", "OFL-Inter.txt"):

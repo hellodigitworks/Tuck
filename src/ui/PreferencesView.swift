@@ -18,7 +18,6 @@ enum Ink {
 /// The two faces. Both ship inside the app; if one is missing the system font steps in.
 enum Type {
     static func serif(_ size: CGFloat) -> Font { .custom("Fraunces-Regular", size: size) }
-    static func italic(_ size: CGFloat) -> Font { .custom("Fraunces-Italic", size: size) }
     static func sans(_ size: CGFloat) -> Font { .custom("Inter-Regular", size: size) }
     static func medium(_ size: CGFloat) -> Font { .custom("Inter-Medium", size: size) }
 }
@@ -26,20 +25,22 @@ enum Type {
 struct PreferencesView: View {
     @ObservedObject var preferences: Preferences
     @ObservedObject var login: LoginItemModel
+    @ObservedObject var updates: UpdateCheck
 
     private var version: String {
         Bundle.main.infoDictionary?["CFBundleShortVersionString"] as? String ?? "dev"
     }
 
     var body: some View {
-        VStack(alignment: .leading, spacing: 16) {
-            VStack(alignment: .leading, spacing: 3) {
+        VStack(alignment: .leading, spacing: 18) {
+            VStack(alignment: .leading, spacing: 4) {
                 Text("Tuck")
                     .font(Type.serif(42))
                 Text("Hide the menu bar icons you are not using right now.")
-                    .font(Type.italic(17))
+                    .font(Type.sans(15))
                     .foregroundStyle(Ink.muted)
             }
+
             Card {
                 MenuBarDemo()
             }
@@ -47,37 +48,21 @@ struct PreferencesView: View {
             VStack(alignment: .leading, spacing: 6) {
                 Text("Hold ⌘ and drag an icon to the left of the mark. It hides with the rest.")
                 Text("Click ✕ to hide them. Click + to bring them back.")
+                Text("Right-click the mark for the menu.")
+                    .font(Type.sans(12))
+                    .foregroundStyle(Ink.muted)
+                    .padding(.top, 2)
             }
             .font(Type.sans(14))
             .lineSpacing(2)
             .fixedSize(horizontal: false, vertical: true)
 
-            VStack(alignment: .leading, spacing: 4) {
-                Text("Nothing hides until you click ✕ the first time. Right-click the mark for the menu.")
-                HStack(spacing: 6) {
-                    Text("From Raycast, Shortcuts or a script:")
-                    Text("Tuck --toggle")
-                        .font(.system(size: 11.5, design: .monospaced))
-                        .padding(.horizontal, 6)
-                        .padding(.vertical, 2)
-                        .background(RoundedRectangle(cornerRadius: 5, style: .continuous).fill(Ink.line))
-                        .textSelection(.enabled)
-                        .help("/Applications/Tuck.app/Contents/MacOS/Tuck --toggle")
-                }
-            }
-            .font(Type.sans(12))
-            .foregroundStyle(Ink.muted)
-            .fixedSize(horizontal: false, vertical: true)
-
             Card {
                 VStack(alignment: .leading, spacing: 10) {
-                    Text("Behaviour")
-                        .font(Type.serif(22))
                     Toggle("Start at login", isOn: launchBinding)
                     if let message = login.message {
                         note(message)
                     }
-                    Toggle("Show this window every time Tuck starts", isOn: $preferences.showPreferencesOnLaunch)
                     Toggle("Hide again automatically", isOn: $preferences.autoHide)
                     HStack(spacing: 6) {
                         ForEach(Preferences.autoHideChoices, id: \.self) { seconds in
@@ -90,40 +75,31 @@ struct PreferencesView: View {
                     .opacity(preferences.autoHide ? 1 : 0.35)
                     .disabled(!preferences.autoHide)
                     .animation(Ink.spring, value: preferences.autoHide)
-                    Toggle("Use the full menu bar while showing", isOn: $preferences.useFullMenuBar)
-                    note("Tuck becomes the front app for a moment. Its short menu leaves the most room for icons.")
                 }
                 .toggleStyle(Check())
             }
 
-            Card {
-                VStack(alignment: .leading, spacing: 8) {
-                    Text("Shortcut")
-                        .font(Type.serif(22))
-                    HStack(spacing: 10) {
-                        ShortcutRecorder(combo: $preferences.hotKey)
-                        Button("Clear") { preferences.hotKey = nil }
-                            .buttonStyle(Outline())
-                            .disabled(preferences.hotKey == nil)
-                        Spacer()
-                    }
-                    Text("Works from any app. Needs ⌘, ⌥ or ⌃ plus a key.")
-                        .font(Type.sans(12))
-                        .foregroundStyle(Ink.muted)
-                }
-            }
+            Spacer(minLength: 0)
 
             HStack(spacing: 16) {
                 Text("Tuck \(version)")
                     .monospacedDigit()
                 Link("GitHub", destination: URL(string: "https://github.com/hellodigitworks/Tuck")!)
+                    .focusable(false)
+                if let newer = updates.newer {
+                    Link("Tuck \(newer.version) is out. Download", destination: newer.url)
+                        .font(Type.medium(12))
+                        .foregroundStyle(Ink.text)
+                        .underline()
+                        .focusable(false)
+                }
                 Spacer()
                 Button("Quit Tuck") { NSApp.terminate(nil) }
                     .buttonStyle(Outline())
+                    .focusable(false)
             }
             .font(Type.sans(12))
             .foregroundStyle(Ink.muted)
-            .padding(.top, 2)
         }
         .font(Type.sans(14))
         .foregroundStyle(Ink.text)
@@ -131,7 +107,8 @@ struct PreferencesView: View {
         .padding(.top, 34)
         .padding(.horizontal, 30)
         .padding(.bottom, 20)
-        .frame(width: 500)
+        .frame(maxWidth: 760, alignment: .topLeading)
+        .frame(minWidth: 440, maxWidth: .infinity, minHeight: 560, maxHeight: .infinity, alignment: .topLeading)
         .background(Ink.paper)
         .onAppear { login.refresh() }
     }

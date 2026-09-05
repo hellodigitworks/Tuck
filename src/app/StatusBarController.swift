@@ -29,6 +29,7 @@ import TuckCore
 ///   constraint is not found, the items simply rest at 16pt as they used to.
 final class StatusBarController: NSObject, NSMenuDelegate {
     private let preferences: Preferences
+    private let updates: UpdateCheck
 
     /// Every item Tuck owns, in creation order. Position decides which is the mark.
     private let items: [NSStatusItem]
@@ -45,7 +46,6 @@ final class StatusBarController: NSObject, NSMenuDelegate {
     private static let rampDelay = 0.05
 
     private(set) var isCollapsed = false
-    private var isToggling = false
     private var autoHideTimer: Timer?
     private var rolesRefresh: DispatchWorkItem?
     private var rampToken = 0
@@ -58,11 +58,12 @@ final class StatusBarController: NSObject, NSMenuDelegate {
     var openPreferences: (() -> Void)?
 
     private enum MenuTag: Int {
-        case showHide = 1, autoHide
+        case showHide = 1, autoHide, update
     }
 
-    init(preferences: Preferences) {
+    init(preferences: Preferences, updates: UpdateCheck) {
         self.preferences = preferences
+        self.updates = updates
 
         // Creation order: each new item lands to the left of the previous one, so the
         // first one made is the one the user ends up clicking.
@@ -332,19 +333,6 @@ final class StatusBarController: NSObject, NSMenuDelegate {
             .receive(on: DispatchQueue.main)
             .sink { [weak self] _ in self?.scheduleAutoHideIfNeeded() }
             .store(in: &cancellables)
-
-        preferences.$useFullMenuBar
-            .dropFirst()
-            .receive(on: DispatchQueue.main)
-            .sink { [weak self] enabled in
-                guard let self else { return }
-                if enabled, !self.isCollapsed {
-                    self.takeFullMenuBar()
-                } else if !enabled {
-                    NSApp.setActivationPolicy(.accessory)
-                }
-            }
-            .store(in: &cancellables)
     }
 
     // MARK: - Clicks
@@ -360,12 +348,6 @@ final class StatusBarController: NSObject, NSMenuDelegate {
 
     /// Hide if showing, show if hidden.
     func toggle() {
-        // A double-click would flicker the Dock icon in full menu bar mode.
-        guard !isToggling else { return }
-        isToggling = true
-        DispatchQueue.main.asyncAfter(deadline: .now() + 0.3) { [weak self] in
-            self?.isToggling = false
-        }
         if isCollapsed { expand() } else { collapse() }
     }
 
@@ -380,7 +362,6 @@ final class StatusBarController: NSObject, NSMenuDelegate {
         autoHideTimer?.invalidate()
         rolesRefresh?.cancel()
         applyLayout()
-        if preferences.useFullMenuBar { leaveFullMenuBar() }
         if !preferences.hasHiddenBefore { preferences.hasHiddenBefore = true }
     }
 
@@ -388,7 +369,6 @@ final class StatusBarController: NSObject, NSMenuDelegate {
         guard isCollapsed else { return }
         isCollapsed = false
         applyLayout()
-        if preferences.useFullMenuBar { takeFullMenuBar() }
         scheduleAutoHideIfNeeded()
         // The bar shuffles as the icons come back, so read the roles again once it settles.
         scheduleRolesRefresh(after: 0.6)
@@ -411,19 +391,6 @@ final class StatusBarController: NSObject, NSMenuDelegate {
                 Log.note("Did not hide: the menu bar never settled. \(self.layoutDescription())")
             }
         }
-    }
-
-    // MARK: - Full menu bar mode
-
-    /// Tuck becomes the front app for a moment. Its short menu leaves the most room for icons.
-    private func takeFullMenuBar() {
-        NSApp.setActivationPolicy(.regular)
-        NSApp.activate(ignoringOtherApps: true)
-    }
-
-    private func leaveFullMenuBar() {
-        NSApp.setActivationPolicy(.accessory)
-        NSApp.deactivate()
     }
 
     // MARK: - Auto hide
@@ -535,6 +502,13 @@ final class StatusBarController: NSObject, NSMenuDelegate {
         report.target = self
         menu.addItem(report)
 
+        // Only there once a newer release exists.
+        let update = NSMenuItem(title: "", action: #selector(menuOpenUpdate), keyEquivalent: "")
+        update.target = self
+        update.tag = MenuTag.update.rawValue
+        update.isHidden = true
+        menu.addItem(update)
+
         menu.addItem(.separator())
         menu.addItem(NSMenuItem(title: "Quit Tuck", action: #selector(NSApplication.terminate(_:)), keyEquivalent: "q"))
         return menu
@@ -543,6 +517,10 @@ final class StatusBarController: NSObject, NSMenuDelegate {
     func menuNeedsUpdate(_ menu: NSMenu) {
         menu.item(withTag: MenuTag.showHide.rawValue)?.title = isCollapsed ? "Show hidden icons" : "Hide icons"
         menu.item(withTag: MenuTag.autoHide.rawValue)?.state = preferences.autoHide ? .on : .off
+        if let item = menu.item(withTag: MenuTag.update.rawValue) {
+            item.isHidden = updates.newer == nil
+            item.title = updates.newer.map { "Download Tuck \($0.version)…" } ?? ""
+        }
     }
 
     func menuDidClose(_ menu: NSMenu) {
@@ -555,4 +533,7 @@ final class StatusBarController: NSObject, NSMenuDelegate {
     @objc private func menuToggle() { toggle() }
     @objc private func menuToggleAutoHide() { preferences.autoHide.toggle() }
     @objc private func menuOpenPreferences() { openPreferences?() }
+    @objc private func menuOpenUpdate() {
+        if let url = updates.newer?.url { NSWorkspace.shared.open(url) }
+    }
 }

@@ -6,11 +6,8 @@ public final class Preferences: ObservableObject {
     public static let shared = Preferences()
 
     public enum Key {
-        public static let showPreferencesOnLaunch = "showPreferencesOnLaunch"
         public static let autoHide = "autoHide"
         public static let autoHideSeconds = "autoHideSeconds"
-        public static let useFullMenuBar = "useFullMenuBar"
-        public static let hotKey = "hotKey"
         public static let hasHiddenBefore = "hasHiddenBefore"
         public static let hidingWidth = "hidingWidth"
         public static let hidingBarWidth = "hidingBarWidth"
@@ -22,10 +19,6 @@ public final class Preferences: ObservableObject {
 
     private let defaults: UserDefaults
 
-    @Published public var showPreferencesOnLaunch: Bool {
-        didSet { defaults.set(showPreferencesOnLaunch, forKey: Key.showPreferencesOnLaunch) }
-    }
-
     @Published public var autoHide: Bool {
         didSet { defaults.set(autoHide, forKey: Key.autoHide) }
     }
@@ -34,12 +27,8 @@ public final class Preferences: ObservableObject {
         didSet { defaults.set(autoHideSeconds, forKey: Key.autoHideSeconds) }
     }
 
-    @Published public var useFullMenuBar: Bool {
-        didSet { defaults.set(useFullMenuBar, forKey: Key.useFullMenuBar) }
-    }
-
     /// False until the user hides icons for the first time. On a fresh install Tuck stays
-    /// open so nothing vanishes before the user has seen where the line is.
+    /// open, and shows its window, until the user has seen where the mark is.
     @Published public var hasHiddenBefore: Bool {
         didSet { defaults.set(hasHiddenBefore, forKey: Key.hasHiddenBefore) }
     }
@@ -54,40 +43,21 @@ public final class Preferences: ObservableObject {
         didSet { defaults.set(hidingBarWidth, forKey: Key.hidingBarWidth) }
     }
 
-    @Published public var hotKey: KeyCombo? {
-        didSet {
-            if let hotKey, let data = try? JSONEncoder().encode(hotKey) {
-                defaults.set(data, forKey: Key.hotKey)
-            } else {
-                defaults.removeObject(forKey: Key.hotKey)
-            }
-        }
-    }
-
     public init(defaults: UserDefaults = .standard) {
         self.defaults = defaults
         defaults.register(defaults: [
-            Key.showPreferencesOnLaunch: false,
             Key.autoHide: true,
             Key.autoHideSeconds: Preferences.defaultAutoHideSeconds,
-            Key.useFullMenuBar: false,
             Key.hasHiddenBefore: false,
         ])
 
-        showPreferencesOnLaunch = defaults.bool(forKey: Key.showPreferencesOnLaunch)
         autoHide = defaults.bool(forKey: Key.autoHide)
         let storedSeconds = defaults.double(forKey: Key.autoHideSeconds)
         autoHideSeconds = Preferences.autoHideChoices.contains(storedSeconds)
             ? storedSeconds
             : Preferences.defaultAutoHideSeconds
-        useFullMenuBar = defaults.bool(forKey: Key.useFullMenuBar)
         hasHiddenBefore = defaults.bool(forKey: Key.hasHiddenBefore)
         hidingWidth = defaults.double(forKey: Key.hidingWidth)
         hidingBarWidth = defaults.double(forKey: Key.hidingBarWidth)
-        if let data = defaults.data(forKey: Key.hotKey) {
-            hotKey = try? JSONDecoder().decode(KeyCombo.self, from: data)
-        } else {
-            hotKey = nil
-        }
     }
 }

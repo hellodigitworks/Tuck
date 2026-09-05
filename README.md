@@ -64,13 +64,18 @@ A plus appears on the right of the menu bar.
 - Click the mark to hide or show them. `+` means hidden, `✕` means showing.
 - The very first time nothing hides until you click ✕. After that Tuck starts hidden.
 - They hide again on their own after 10 seconds. Change or switch that off in Preferences.
-- Right-click the mark for the menu: show, hide, Preferences, Quit.
-
-**Keyboard shortcut.** Record one in Preferences. It works from any app and needs ⌘, ⌥ or
-⌃ plus a key.
+- Right-click the mark for the menu: show, hide, Preferences, Copy Diagnostics, Quit.
 
 **Start at login.** A checkbox in Preferences. Move the app to `/Applications` first so
 macOS can always find it.
+
+**Updates.** Tuck asks GitHub once every few hours whether a newer release exists. If one
+does, the window and the right-click menu say so with a link. It never downloads anything
+on its own.
+
+**If something goes wrong.** Right-click the mark and choose Copy Diagnostics: the Mac,
+the screens, every item's position and the recent log land on the clipboard, ready to
+paste into an issue. The log itself is at `~/Library/Logs/Tuck.log`.
 
 **From a script, Raycast or Shortcuts:**
 
@@ -114,13 +119,13 @@ npx wrangler pages deploy . --project-name tuck --branch main
 
 | Folder | What |
 |---|---|
-| `src/data/` | Settings, the keyboard shortcut, start at login. No screen code |
+| `src/data/` | Settings, start at login, the update check, the log. No screen code |
 | `src/app/` | App start-up and the menu bar items |
-| `src/ui/` | The mark artwork, the preferences window and the shortcut recorder |
+| `src/ui/` | The mark artwork and the preferences window |
 | `scripts/` | Build script, test script, icon generator and image generator |
 | `icons/` | Generated app icon |
 | `fonts/` | Fraunces and Inter, the two faces the app ships. Generated |
 | `site/` | The landing page, deployed as it is |
-| `tests/` | Checks for the settings and shortcut logic |
+| `tests/` | Checks for the settings and update logic |
 | `docs/images/` | The pictures in this README, the social card and the lab shot. Generated |
 | `build/` | The finished app and the release zip (generated, not committed) |

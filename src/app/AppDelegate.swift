@@ -1,35 +1,28 @@
 import AppKit
-import Combine
 import TuckCore
 
 final class AppDelegate: NSObject, NSApplicationDelegate {
     static let toggleNotification = Notification.Name("com.hdw.tuck.toggle")
 
     private let preferences = Preferences.shared
-    private let hotKeys = HotKeyCenter()
     private var statusBar: StatusBarController?
-    private var cancellables = Set<AnyCancellable>()
 
     func applicationDidFinishLaunching(_ notification: Notification) {
         NSApp.mainMenu = MainMenu.build()
 
-        let statusBar = StatusBarController(preferences: preferences)
+        let statusBar = StatusBarController(preferences: preferences, updates: .shared)
         statusBar.openPreferences = { [weak self] in self?.showPreferences(nil) }
         self.statusBar = statusBar
 
-        hotKeys.handler = { [weak statusBar] in statusBar?.toggle() }
-        hotKeys.register(preferences.hotKey)
-        preferences.$hotKey
-            .dropFirst()
-            .sink { [weak self] combo in self?.hotKeys.register(combo) }
-            .store(in: &cancellables)
+        UpdateCheck.shared.start()
 
         DistributedNotificationCenter.default().addObserver(
             self, selector: #selector(handleToggleNotification),
             name: AppDelegate.toggleNotification, object: nil)
 
-        // The window shows itself until the user has hidden icons once. After that, only if asked.
-        if preferences.showPreferencesOnLaunch || !preferences.hasHiddenBefore {
+        // The window shows itself until the user has hidden icons once. After that it is
+        // a right-click away.
+        if !preferences.hasHiddenBefore {
             showPreferences(nil)
         }
     }

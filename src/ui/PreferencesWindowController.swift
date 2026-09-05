@@ -9,8 +9,8 @@ final class PreferencesWindowController: NSWindowController {
 
     private init() {
         let window = NSWindow(
-            contentRect: .zero,
-            styleMask: [.titled, .closable, .miniaturizable, .fullSizeContentView],
+            contentRect: NSRect(x: 0, y: 0, width: 500, height: 600),
+            styleMask: [.titled, .closable, .miniaturizable, .resizable, .fullSizeContentView],
             backing: .buffered,
             defer: false)
         window.title = "Tuck"
@@ -20,7 +20,12 @@ final class PreferencesWindowController: NSWindowController {
         window.backgroundColor = NSColor(red: 0.957, green: 0.937, blue: 0.902, alpha: 1)
         window.isMovableByWindowBackground = true
         window.isReleasedWhenClosed = false
-        window.contentViewController = NSHostingController(rootView: PreferencesView(preferences: .shared, login: LoginItemModel()))
+        // Small enough for a laptop, never so small that a line has to break twice.
+        window.contentMinSize = NSSize(width: 440, height: 560)
+        window.contentViewController = NSHostingController(
+            rootView: PreferencesView(preferences: .shared, login: LoginItemModel(), updates: .shared))
+        window.setContentSize(NSSize(width: 500, height: 600))
+        window.setFrameAutosaveName("TuckPreferences")
         super.init(window: window)
     }
 
@@ -31,7 +36,7 @@ final class PreferencesWindowController: NSWindowController {
 
     func show() {
         guard let window else { return }
-        if !window.isVisible {
+        if !window.isVisible, !window.setFrameUsingName("TuckPreferences") {
             window.center()
         }
         NSApp.activate(ignoringOtherApps: true)

@@ -173,8 +173,8 @@ func tile(_ size: Int, transparent: Bool = false) -> NSBitmapImageRep {
 
 let serifBig = font("Fraunces-Regular", 150)
 let serifMid = font("Fraunces-Regular", 116)
-let italicBody = font("Fraunces-Italic", 40)
-let italicSmall = font("Fraunces-Italic", 34)
+let sansBody = font("Inter-Regular", 36)
+let sansMid = font("Inter-Regular", 30)
 let sans = font("Inter-Regular", 22)
 let sansSmall = font("Inter-Regular", 18)
 let sansMedium = font("Inter-Medium", 22)
@@ -185,7 +185,7 @@ let tagline = "Hide the menu bar icons you are not using right now."
 save(canvas(1600, 900) { frame in
     mark(at: NSPoint(x: 186, y: frame.height - 186), arm: 42, stroke: 12, orange)
     text("Tuck", serifBig, ink, x: 140, top: 275, in: frame, tracking: -3)
-    text(tagline, italicBody, muted, x: 142, top: 455, in: frame, width: 600)
+    text(tagline, sansBody, muted, x: 142, top: 462, in: frame, width: 600)
     text("macOS 13 or later  ·  Apple silicon  ·  free  ·  MIT", sans, muted, x: 142, top: 790, in: frame)
     window(x: 900, top: 110, width: 600, in: frame)
 }, docs.appendingPathComponent("hero.png"))
@@ -227,7 +227,7 @@ func card(_ width: Int, _ height: Int, footer: String) -> NSBitmapImageRep {
     canvas(width, height) { frame in
         mark(at: NSPoint(x: 138, y: frame.height - 128), arm: 32, stroke: 9, orange)
         text("Tuck", serifMid, ink, x: 100, top: 196, in: frame, tracking: -2.5)
-        text(tagline, italicSmall, muted, x: 102, top: 340, in: frame, width: 540)
+        text(tagline, sansMid, muted, x: 102, top: 345, in: frame, width: 540)
         text(footer, sans, muted, x: 102, top: CGFloat(height) - 80, in: frame)
         window(x: CGFloat(width) - 480, top: 90, width: 420, in: frame)
     }
