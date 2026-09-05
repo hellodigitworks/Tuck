@@ -108,8 +108,20 @@ final class StatusBarController: NSObject, NSMenuDelegate {
         return max(200, floor(bar / 2) - 32)
     }
 
+    /// macOS 27 caps one item at about half the screen, so the width is shared across a
+    /// few items there. Before 27 one item can take any width, which is how Ice does it,
+    /// so there is one spacer and it is set to `pushLength` in a single step.
+    private static var sharesWidth: Bool {
+        if #available(macOS 27, *) { return true }
+        return false
+    }
+
+    /// What the one spacer asks for before macOS 27. Ice's number.
+    private static let pushLength: CGFloat = 10_000
+
     /// Enough items to fill the widest bar this Mac can show, plus one to spare.
     private static func spacerCount(for screens: [NSScreen]) -> Int {
+        guard sharesWidth else { return 1 }
         let widest = screens.map(\.frame.width).max() ?? 1440
         let ceiling = max(200, floor(widest / 2) - 32)
         return max(2, Int((widest / ceiling).rounded(.up)) + 1)
@@ -195,9 +207,33 @@ final class StatusBarController: NSObject, NSMenuDelegate {
 
         rampToken += 1
         if isCollapsed {
-            grow(spacers, token: rampToken, total: startingWidth)
+            if Self.sharesWidth {
+                grow(spacers, token: rampToken, total: startingWidth)
+            } else {
+                push(spacers)
+            }
         } else {
             for spacer in spacers { shrink(spacer) }
+        }
+        snapshotSoon()
+    }
+
+    /// Before macOS 27: the first spacer takes the whole push in one step, the rest stay
+    /// out of the way. No ramp, no sharing, no remembered width.
+    private func push(_ items: [NSStatusItem]) {
+        guard let first = items.first else { return }
+        widen(first, to: Self.pushLength)
+        for spacer in items.dropFirst() { shrink(spacer) }
+        Log.note("Pushed with \(Int(Self.pushLength))pt: \(layoutDescription())")
+    }
+
+    /// Writes down where everything in the bar is a moment after a change, when the bar
+    /// has had time to lay itself out. The frames read straight after a change are stale.
+    private func snapshotSoon() {
+        let token = rampToken
+        DispatchQueue.main.asyncAfter(deadline: .now() + 1.5) { [weak self] in
+            guard let self, self.rampToken == token else { return }
+            Log.note("Bar 1.5s later, \(self.isCollapsed ? "hidden" : "showing"): \(self.layoutDescription()) || \(self.barSnapshot())")
         }
     }
 
@@ -454,6 +490,24 @@ final class StatusBarController: NSObject, NSMenuDelegate {
         }.joined(separator: " | ")
     }
 
+    /// Every window sitting at menu bar height, by owner, left to right: what is actually on
+    /// the bar right now, other apps' items included. Bounds only, so no permission is needed.
+    private func barSnapshot() -> String {
+        guard let list = CGWindowListCopyWindowInfo([.optionOnScreenOnly], kCGNullWindowID) as? [[String: Any]] else {
+            return "(no window list)"
+        }
+        let entries: [(x: CGFloat, text: String)] = list.compactMap { info in
+            guard let layer = info[kCGWindowLayer as String] as? Int,
+                  let bounds = info[kCGWindowBounds as String] as? [String: CGFloat],
+                  let x = bounds["X"], let width = bounds["Width"],
+                  let y = bounds["Y"], let height = bounds["Height"], y < 40, height < 60,
+                  let owner = info[kCGWindowOwnerName as String] as? String
+            else { return nil }
+            return (x, "\(owner)(\(layer)):\(Int(x))+\(Int(width))")
+        }
+        return entries.sorted { $0.x < $1.x }.map(\.text).joined(separator: " ")
+    }
+
     /// A report a person can paste into a message: the Mac, the screens, every item, the log.
     func diagnosticsReport() -> String {
         let version = Bundle.main.infoDictionary?["CFBundleShortVersionString"] as? String ?? "?"
@@ -463,6 +517,7 @@ final class StatusBarController: NSObject, NSMenuDelegate {
         Screens: \(screens.joined(separator: "; "))
         State: \(isCollapsed ? "hidden" : "showing"), ceiling \(Int(widthCeiling))pt, remembered \(Int(preferences.hidingWidth))pt for a \(Int(preferences.hidingBarWidth))pt bar
         Items: \(layoutDescription())
+        Bar: \(barSnapshot())
 
         Log:
         \(Log.tail())
