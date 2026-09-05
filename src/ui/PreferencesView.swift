@@ -33,82 +33,6 @@ struct PreferencesView: View {
 
     var body: some View {
         VStack(alignment: .leading, spacing: 18) {
-            // A fresh install gets the welcome. The moment icons are hidden for the first
-            // time it turns into the preferences, and never opens on its own again.
-            if preferences.hasHiddenBefore {
-                settings
-            } else {
-                welcome
-            }
-        }
-        .font(Type.sans(14))
-        .foregroundStyle(Ink.text)
-        .tint(Ink.text)
-        .padding(.top, 34)
-        .padding(.horizontal, 30)
-        .padding(.bottom, 24)
-        // One block, no wider than a comfortable line, sitting in the middle of whatever
-        // size the window is. Grow the window and the block just gets more room around it.
-        .frame(maxWidth: 620)
-        .frame(minWidth: 440, maxWidth: .infinity, minHeight: 600, maxHeight: .infinity, alignment: .center)
-        .background(Ink.paper)
-        .animation(Ink.spring, value: preferences.hasHiddenBefore)
-        .onAppear { login.refresh() }
-    }
-
-    // MARK: - Welcome
-
-    /// One screen for the first open: where the mark is and the three moves.
-    private var welcome: some View {
-        Group {
-            VStack(alignment: .leading, spacing: 4) {
-                Text("Tuck is in your menu bar.")
-                    .font(Type.serif(42))
-                Text("Look for the ✕. Three things to know.")
-                    .font(Type.sans(15))
-                    .foregroundStyle(Ink.muted)
-            }
-
-            Card {
-                MenuBarDemo()
-            }
-
-            VStack(alignment: .leading, spacing: 12) {
-                step(1, "Hold ⌘ and drag the icons you want out of the way to the left of the ✕.")
-                step(2, "Click the ✕. They tuck away and it turns into a plus.")
-                step(3, "Click the plus and they are back.")
-            }
-            .font(Type.sans(14))
-            .lineSpacing(2)
-
-            Text("Once you have hidden them the first time this window becomes Preferences, and stays out of the way until you right-click the mark.")
-                .font(Type.sans(12))
-                .foregroundStyle(Ink.muted)
-                .lineSpacing(2)
-                .fixedSize(horizontal: false, vertical: true)
-
-            footer
-        }
-    }
-
-    private func step(_ number: Int, _ text: String) -> some View {
-        HStack(alignment: .top, spacing: 12) {
-            Text("\(number)")
-                .font(Type.medium(12))
-                .monospacedDigit()
-                .foregroundStyle(Ink.paper)
-                .frame(width: 22, height: 22)
-                .background(Circle().fill(Ink.text))
-            Text(text)
-                .fixedSize(horizontal: false, vertical: true)
-                .padding(.top, 2)
-        }
-    }
-
-    // MARK: - Preferences
-
-    private var settings: some View {
-        Group {
             VStack(alignment: .leading, spacing: 4) {
                 Text("Tuck")
                     .font(Type.serif(42))
@@ -155,31 +79,38 @@ struct PreferencesView: View {
                 .toggleStyle(Check())
             }
 
-            footer
-        }
-    }
-
-    /// The version, the links and Quit. The same row under both screens.
-    private var footer: some View {
-        HStack(spacing: 16) {
-            Text("Tuck \(version)")
-                .monospacedDigit()
-            Link("GitHub", destination: URL(string: "https://github.com/hellodigitworks/Tuck")!)
-                .focusable(false)
-            if let newer = updates.newer {
-                Link("Tuck \(newer.version) is out. Download", destination: newer.url)
-                    .font(Type.medium(12))
-                    .foregroundStyle(Ink.text)
-                    .underline()
+            HStack(spacing: 16) {
+                Text("Tuck \(version)")
+                    .monospacedDigit()
+                Link("GitHub", destination: URL(string: "https://github.com/hellodigitworks/Tuck")!)
+                    .focusable(false)
+                if let newer = updates.newer {
+                    Link("Tuck \(newer.version) is out. Download", destination: newer.url)
+                        .font(Type.medium(12))
+                        .foregroundStyle(Ink.text)
+                        .underline()
+                        .focusable(false)
+                }
+                Spacer()
+                Button("Quit Tuck") { NSApp.terminate(nil) }
+                    .buttonStyle(Outline())
                     .focusable(false)
             }
-            Spacer()
-            Button("Quit Tuck") { NSApp.terminate(nil) }
-                .buttonStyle(Outline())
-                .focusable(false)
+            .font(Type.sans(12))
+            .foregroundStyle(Ink.muted)
         }
-        .font(Type.sans(12))
-        .foregroundStyle(Ink.muted)
+        .font(Type.sans(14))
+        .foregroundStyle(Ink.text)
+        .tint(Ink.text)
+        .padding(.top, 34)
+        .padding(.horizontal, 30)
+        .padding(.bottom, 24)
+        // One block, no wider than a comfortable line, sitting in the middle of whatever
+        // size the window is. Grow the window and the block just gets more room around it.
+        .frame(maxWidth: 620)
+        .frame(minWidth: 440, maxWidth: .infinity, minHeight: 600, maxHeight: .infinity, alignment: .center)
+        .background(Ink.paper)
+        .onAppear { login.refresh() }
     }
 
     private var launchBinding: Binding<Bool> {

@@ -67,9 +67,7 @@ untested.
 
 ## Use it
 
-Tuck's mark appears in the menu bar, and the first time a welcome window comes with it:
-the three moves below, in one screen. The moment icons are hidden for the first time it
-turns into Preferences and stays out of the way.
+Tuck's mark appears in the menu bar, and the first time its window comes with it.
 
 - Hold ⌘ and drag any icon to the left of the mark. It now hides with the rest.
 - Click the mark to hide or show them. `+` means hidden, `✕` means showing.

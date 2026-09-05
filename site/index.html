@@ -29,7 +29,7 @@
 
   <link rel="preload" href="fonts/fraunces.woff2" as="font" type="font/woff2" crossorigin />
   <link rel="preload" href="fonts/inter.woff2" as="font" type="font/woff2" crossorigin />
-  <link rel="stylesheet" href="css/tuck.css?v=2" />
+  <link rel="stylesheet" href="css/tuck.css?v=3" />
 </head>
 <body>
 
@@ -65,29 +65,12 @@
       </div>
     </div>
 
-    <!-- The way in: one line for Terminal. Files that arrive through curl carry no
-         download tag, so macOS never shows the "could not verify" warning an unsigned
-         app gets. The zip is still there for anyone who would rather have it. -->
-    <div class="install reveal" style="--i:2">
-      <div class="line">
-        <code id="cmd">curl -fsSL https://tuck.hellodigitworks.com/install.sh | sh</code>
-        <button class="copy" type="button" aria-label="Copy the install line">Copy</button>
-      </div>
-      <p class="how">Paste it in Terminal. Tuck installs and opens, no warning. <a href="https://github.com/hellodigitworks/Tuck/blob/main/site/install.sh">What it does</a></p>
-      <details class="zip">
-        <summary>Or download the zip</summary>
-        <p>
-          <a href="https://github.com/hellodigitworks/Tuck/releases/latest/download/Tuck.zip">Tuck.zip</a>, unzipped and moved into Applications.
-          Tuck is not signed with an Apple developer certificate, so the first open takes three clicks:
-        </p>
-        <ol>
-          <li>Double-click Tuck. macOS says it could not verify the app. Click <b>Done</b>.</li>
-          <li>Open System Settings → Privacy &amp; Security, scroll down, click <b>Open Anyway</b>.</li>
-          <li>Click <b>Open Anyway</b> once more. Tuck's mark appears in the menu bar.</li>
-        </ol>
-        <p>Needs macOS 13 or later on Apple silicon.</p>
-      </details>
-    </div>
+    <!-- The way in: one button. It copies one line for Terminal and then says what to do
+         next. Files that arrive through curl carry no download tag, so macOS never shows
+         the "could not verify" warning an unsigned app gets. -->
+    <button class="button reveal" style="--i:2" type="button" id="install"
+      data-line="curl -fsSL https://tuck.hellodigitworks.com/install.sh | sh">Install for Mac</button>
+    <code class="line" id="line" hidden>curl -fsSL https://tuck.hellodigitworks.com/install.sh | sh</code>
   </main>
 
   <script>
@@ -95,27 +78,25 @@
       navigator.serviceWorker.register('sw.js').catch(function () {});
     }
 
-    // Copy: the line goes to the clipboard and the button says so for a moment.
-    // Where the clipboard is off limits, the line is selected instead, ready for ⌘C.
-    var copy = document.querySelector('.copy');
-    var cmd = document.getElementById('cmd');
-    copy.addEventListener('click', function () {
-      var done = function () {
-        copy.textContent = 'Copied';
-        copy.classList.add('did');
-        setTimeout(function () { copy.textContent = 'Copy'; copy.classList.remove('did'); }, 1600);
+    // One click copies the line and the button becomes the next step. Only if the browser
+    // will not hand over the clipboard does the line itself appear, to be copied by hand.
+    var install = document.getElementById('install');
+    var line = document.getElementById('line');
+    var text = install.getAttribute('data-line');
+    install.addEventListener('click', function () {
+      var copied = function () {
+        install.textContent = 'Copied. Open Terminal, paste, press Return.';
+        install.classList.add('done');
       };
-      var select = function () {
-        var range = document.createRange();
-        range.selectNodeContents(cmd);
-        var selection = window.getSelection();
-        selection.removeAllRanges();
-        selection.addRange(range);
+      var byHand = function () {
+        line.hidden = false;
+        install.textContent = 'Copy this line, then paste it in Terminal.';
+        install.classList.add('done');
       };
       if (navigator.clipboard && navigator.clipboard.writeText) {
-        navigator.clipboard.writeText(cmd.textContent).then(done, select);
+        navigator.clipboard.writeText(text).then(copied, byHand);
       } else {
-        select();
+        byHand();
       }
     });
   </script>
