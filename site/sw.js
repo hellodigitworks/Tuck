@@ -8,7 +8,6 @@ const FILES = [
   '/fonts/fraunces.woff2',
   '/fonts/fraunces-italic.woff2',
   '/fonts/inter.woff2',
-  '/images/window.jpg?v=1',
   '/images/favicon.svg?v=1',
   '/images/icon-192.png?v=1',
   '/images/icon-512.png?v=1',

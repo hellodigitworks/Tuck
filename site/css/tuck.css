@@ -1,6 +1,6 @@
-/* Tuck — the landing page.
-   Cream paper, ink text, one orange. Fraunces for the words that set the room, Inter
-   for the rest. Everything else is space. */
+/* Tuck — one screen.
+   Cream paper, ink text, one orange. Fraunces for the headline, Inter for the button.
+   Everything else is space. */
 
 @font-face {
   font-family: "Fraunces";
@@ -34,25 +34,19 @@
   --orange: #ff2e00;
   --serif: "Fraunces", "Iowan Old Style", "Palatino", Georgia, serif;
   --sans: "Inter", -apple-system, "Helvetica Neue", Helvetica, Arial, sans-serif;
-  --mono: ui-monospace, "SF Mono", Menlo, Consolas, monospace;
-  --shadow: 0 6px 24px rgba(60, 44, 20, 0.07), 0 1px 2px rgba(60, 44, 20, 0.04);
   --ease: cubic-bezier(0.2, 0.7, 0.2, 1);
-  --spring: cubic-bezier(0.34, 1.3, 0.64, 1);
 }
 
 *, *::before, *::after { box-sizing: border-box; }
-html { -webkit-text-size-adjust: 100%; scroll-behavior: smooth; }
+html { -webkit-text-size-adjust: 100%; }
 body {
   margin: 0;
   background: var(--paper);
   color: var(--ink);
   font-family: var(--sans);
-  font-size: 17px;
-  line-height: 1.6;
   -webkit-font-smoothing: antialiased;
   text-rendering: optimizeLegibility;
   min-height: 100dvh;
-  padding: 0 clamp(20px, 5vw, 48px) env(safe-area-inset-bottom);
 }
 /* A whisper of paper grain, so the cream reads as a surface and not a colour. */
 body::before {
@@ -64,149 +58,67 @@ body::before {
   opacity: 0.035;
   background-image: url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='160' height='160'><filter id='n'><feTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='2' stitchTiles='stitch'/></filter><rect width='100%' height='100%' filter='url(%23n)'/></svg>");
 }
-main, header, footer { position: relative; z-index: 1; }
-
-a { color: inherit; text-decoration: none; }
-p a { text-decoration: underline; text-underline-offset: 3px; text-decoration-color: var(--edge); }
-p a:hover { text-decoration-color: var(--ink); }
 ::selection { background: var(--ink); color: var(--paper); }
 
-h1, h2 {
+/* ---------- the screen ---------- */
+.screen {
+  position: relative;
+  z-index: 1;
+  min-height: 100dvh;
+  padding: 24px clamp(20px, 5vw, 48px) calc(24px + env(safe-area-inset-bottom));
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: clamp(36px, 6vh, 64px);
+  text-align: center;
+}
+
+h1 {
   font-family: var(--serif);
   font-weight: 400;
   font-optical-sizing: auto;
-  letter-spacing: -0.015em;
-  margin: 0;
-}
-h1 {
-  font-size: clamp(52px, 9.5vw, 108px);
+  font-size: clamp(56px, 10vw, 120px);
   line-height: 0.96;
   letter-spacing: -0.025em;
+  margin: 0;
 }
 h1 em { font-style: italic; }
-h2 { font-size: clamp(28px, 3.4vw, 40px); line-height: 1.1; }
-p { margin: 0; }
-code {
-  font-family: var(--mono);
-  font-size: 0.85em;
-  background: var(--line);
-  padding: 2px 7px;
-  border-radius: 6px;
-  white-space: nowrap;
-}
-kbd {
-  font-family: var(--sans);
-  font-size: 0.9em;
-  border: 1px solid var(--edge);
-  border-radius: 6px;
-  padding: 0 6px;
-  background: var(--card);
-}
-.fine { font-size: 14px; color: var(--muted); line-height: 1.6; }
-.fine code { white-space: normal; }
-
-/* ---------- buttons ---------- */
-.button {
-  display: inline-flex;
-  align-items: center;
-  gap: 8px;
-  background: var(--ink);
-  color: var(--paper);
-  font-weight: 500;
-  font-size: 16px;
-  padding: 14px 24px;
-  border-radius: 999px;
-  border: 1px solid var(--ink);
-  transition: transform 0.35s var(--spring), box-shadow 0.35s var(--ease), background 0.2s;
-  box-shadow: 0 1px 2px rgba(20, 18, 15, 0.2);
-}
-.button:hover { transform: translateY(-2px); box-shadow: 0 10px 24px rgba(20, 18, 15, 0.18); }
-.button:active { transform: translateY(0) scale(0.98); }
-.button-small { padding: 9px 16px; font-size: 14px; }
-
-/* ---------- top bar ---------- */
-.top {
-  max-width: 1080px;
-  margin: 0 auto;
-  padding: 22px 0 0;
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-}
-.brand {
-  display: inline-flex;
-  align-items: center;
-  gap: 10px;
-  font-family: var(--serif);
-  font-size: 24px;
-  letter-spacing: -0.01em;
-}
-.brand-mark, .mark svg, .hides svg, .stays svg {
-  width: 20px; height: 20px;
-  fill: none; stroke: currentColor; stroke-width: 2; stroke-linecap: round; stroke-linejoin: round;
-}
-.brand-mark { color: var(--orange); stroke-width: 2.6; }
-.top-links { display: flex; align-items: center; gap: 22px; font-size: 15px; color: var(--muted); }
-.top-links a:not(.button):hover { color: var(--ink); }
-
-/* ---------- hero ---------- */
-.hero {
-  max-width: 1080px;
-  margin: clamp(64px, 12vh, 140px) auto 0;
-}
-.eyebrow {
-  font-size: 14px;
-  color: var(--muted);
-  letter-spacing: 0.02em;
-  margin-bottom: 22px;
-}
-.lead {
-  font-size: clamp(18px, 2vw, 22px);
-  line-height: 1.55;
-  max-width: 34em;
-  color: var(--muted);
-  margin-top: 30px;
-}
-.cta {
-  display: flex;
-  flex-wrap: wrap;
-  align-items: center;
-  gap: 18px 24px;
-  margin-top: 38px;
-}
 
 /* ---------- the demo ---------- */
-.demo {
-  max-width: 1080px;
-  margin: clamp(56px, 9vh, 96px) auto 0;
-}
+.demo { width: min(100%, 720px); }
 .bar {
   background: var(--card);
   border: 1px solid var(--line);
   border-radius: 20px;
-  box-shadow: var(--shadow);
   height: 64px;
   padding: 0 22px;
   display: flex;
   align-items: center;
   justify-content: space-between;
   overflow: hidden;
+  box-shadow: 0 6px 24px rgba(60, 44, 20, 0.07), 0 1px 2px rgba(60, 44, 20, 0.04);
 }
 .bar-left { display: flex; gap: 8px; }
 .dot { width: 12px; height: 12px; border-radius: 50%; background: var(--line); }
-.bar-right { display: flex; align-items: center; gap: 22px; color: var(--ink); }
+.bar-right { display: flex; align-items: center; gap: 22px; }
 .hides, .stays { display: flex; gap: 22px; }
+.hides svg, .stays svg, .mark svg {
+  width: 20px; height: 20px;
+  fill: none; stroke: currentColor; stroke-width: 2; stroke-linecap: round; stroke-linejoin: round;
+}
+/* Everything but the mark is faded, so the eye lands on the mark. */
+.hides, .stays, .clock { color: var(--ink); opacity: 0.32; }
 .hides { animation: tuck 6s var(--ease) infinite; }
 .mark { color: var(--orange); display: inline-flex; animation: turn 6s var(--ease) infinite; }
 .mark svg { stroke-width: 2.4; }
 .clock { font-size: 15px; font-variant-numeric: tabular-nums; margin-left: 4px; }
-.caption { margin-top: 16px; font-size: 14px; color: var(--muted); text-align: center; }
 
 /* Showing for the first half, a quick slide out, hidden for a while, then a quick slide back. */
 @keyframes tuck {
-  0%, 40%   { transform: translateX(0); opacity: 1; }
+  0%, 40%   { transform: translateX(0); opacity: 0.32; }
   47%, 88%  { transform: translateX(-140px); opacity: 0; }
-  95%, 100% { transform: translateX(0); opacity: 1; }
+  95%, 100% { transform: translateX(0); opacity: 0.32; }
 }
 @keyframes turn {
   0%, 40%   { transform: rotate(45deg); }
@@ -214,123 +126,28 @@ kbd {
   95%, 100% { transform: rotate(45deg); }
 }
 
-/* ---------- steps ---------- */
-.steps {
-  max-width: 1080px;
-  margin: clamp(72px, 12vh, 140px) auto 0;
-  display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
-  gap: 18px;
-}
-.step {
-  background: var(--card);
-  border: 1px solid var(--line);
-  border-radius: 20px;
-  padding: 28px 26px 30px;
-  box-shadow: var(--shadow);
-  transition: transform 0.4s var(--spring), border-color 0.2s;
-}
-.step:hover { transform: translateY(-3px); border-color: var(--edge); }
-.step-n {
-  display: inline-block;
-  font-family: var(--serif);
-  font-size: 15px;
-  color: var(--muted);
-  border: 1px solid var(--edge);
+/* ---------- the button ---------- */
+.button {
+  font-family: var(--sans);
+  font-weight: 500;
+  font-size: 16px;
+  color: var(--ink);
+  text-decoration: none;
+  padding: 14px 28px;
+  border: 1px solid var(--ink);
   border-radius: 999px;
-  width: 30px; height: 30px;
-  line-height: 28px;
-  text-align: center;
-  margin-bottom: 20px;
+  background: transparent;
+  transition: background 0.2s, color 0.2s;
 }
-.step h2 { font-size: 30px; margin-bottom: 10px; }
-.step p { color: var(--muted); font-size: 16px; }
-
-/* ---------- the window ---------- */
-.window {
-  max-width: 1080px;
-  margin: clamp(80px, 14vh, 160px) auto 0;
-  display: grid;
-  grid-template-columns: 1fr;
-  gap: 40px;
-  align-items: center;
-}
-.window-text p { margin-top: 18px; color: var(--muted); max-width: 30em; }
-.window-shot { margin: 0; }
-.window-shot img {
-  display: block;
-  width: 100%;
-  max-width: 500px;
-  height: auto;
-  margin: 0 auto;
-  border-radius: 20px;
-  border: 1px solid var(--line);
-  box-shadow: 0 30px 70px rgba(60, 44, 20, 0.14), 0 2px 6px rgba(60, 44, 20, 0.06);
-}
-@media (min-width: 860px) {
-  .window { grid-template-columns: 1fr 1fr; gap: 60px; }
-}
-
-/* ---------- install ---------- */
-.install {
-  max-width: 1080px;
-  margin: clamp(80px, 14vh, 160px) auto 0;
-  background: var(--card);
-  border: 1px solid var(--line);
-  border-radius: 24px;
-  padding: clamp(28px, 5vw, 48px);
-  box-shadow: var(--shadow);
-}
-.install > p { margin-top: 16px; color: var(--muted); max-width: 40em; }
-.install ol {
-  margin: 26px 0 0;
-  padding: 0;
-  list-style: none;
-  counter-reset: step;
-  display: grid;
-  gap: 14px;
-  max-width: 44em;
-}
-.install li {
-  counter-increment: step;
-  display: grid;
-  grid-template-columns: 30px 1fr;
-  gap: 14px;
-  align-items: start;
-}
-.install li::before {
-  content: counter(step);
-  font-family: var(--serif);
-  font-size: 15px;
-  color: var(--muted);
-  border: 1px solid var(--edge);
-  border-radius: 999px;
-  width: 30px; height: 30px;
-  line-height: 28px;
-  text-align: center;
-}
-.install .fine { margin-top: 22px; }
-
-/* ---------- footer ---------- */
-.foot {
-  max-width: 1080px;
-  margin: clamp(72px, 12vh, 120px) auto 0;
-  padding: 26px 0 40px;
-  border-top: 1px solid var(--line);
-  display: flex;
-  flex-wrap: wrap;
-  gap: 12px 32px;
-  font-size: 14px;
-  color: var(--muted);
-}
-.foot a:hover { color: var(--ink); }
+.button:hover, .button:focus-visible { background: var(--ink); color: var(--paper); outline: none; }
+.button:active { opacity: 0.85; }
 
 /* ---------- arrival ---------- */
 .reveal {
   opacity: 0;
   transform: translateY(14px);
   animation: rise 0.9s var(--ease) forwards;
-  animation-delay: calc(var(--i, 0) * 110ms);
+  animation-delay: calc(var(--i, 0) * 140ms);
 }
 @keyframes rise { to { opacity: 1; transform: none; } }
 
@@ -338,15 +155,11 @@ kbd {
   .reveal { animation: none; opacity: 1; transform: none; }
   .hides, .mark { animation: none; }
   .mark { transform: rotate(45deg); }
-  .button, .step { transition: none; }
-  html { scroll-behavior: auto; }
+  .button { transition: none; }
 }
 
 @media (max-width: 520px) {
-  body { font-size: 16px; }
-  .top-links { gap: 16px; }
   .bar { height: 56px; padding: 0 16px; }
   .bar-right, .hides, .stays { gap: 16px; }
   .clock { display: none; }
-  .step { padding: 24px 22px 26px; }
 }

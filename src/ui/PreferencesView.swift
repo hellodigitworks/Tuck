@@ -200,7 +200,7 @@ struct MenuBarDemo: View {
             ForEach(names, id: \.self) { name in
                 Image(systemName: name)
                     .font(.system(size: 13))
-                    .foregroundStyle(Ink.text.opacity(0.75))
+                    .foregroundStyle(Ink.text.opacity(0.32))
             }
         }
     }

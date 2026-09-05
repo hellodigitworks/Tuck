@@ -8,7 +8,6 @@
 //   lab.jpg       600×375   the row on lab.hellodigitworks.com
 // site/images (the landing page):
 //   og.png       1200×630   the link preview
-//   window.jpg              the window photograph, flattened onto the paper
 //   favicon-32.png, favicon.png, apple-touch-icon.png, icon-192.png, icon-512.png
 //
 // The fonts are the ones the app ships, read straight from fonts/.
@@ -247,12 +246,3 @@ save(tile(512, transparent: true), site.appendingPathComponent("favicon.png"))
 save(tile(180), site.appendingPathComponent("apple-touch-icon.png"))
 save(tile(192), site.appendingPathComponent("icon-192.png"))
 save(tile(512), site.appendingPathComponent("icon-512.png"))
-
-// The page shows the window too, flattened onto the paper as a JPEG so it weighs a third.
-if let data = try? Data(contentsOf: docs.appendingPathComponent("window.png")),
-   let shot = NSBitmapImageRep(data: data) {
-    save(canvas(shot.pixelsWide, shot.pixelsHigh) { frame in
-        NSGraphicsContext.current?.imageInterpolation = .high
-        shot.draw(in: frame)
-    }, site.appendingPathComponent("window.jpg"))
-}
