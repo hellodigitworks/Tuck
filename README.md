@@ -36,18 +36,27 @@ Three details, all measured on macOS 27:
 
 ## Get it
 
-Download the zip from the [latest release](https://github.com/hellodigitworks/Tuck/releases/latest),
-unzip it, and move `Tuck.app` into `/Applications`.
+One line in Terminal:
 
-Tuck is not signed with an Apple developer certificate, so the first open takes three
-clicks:
+```bash
+curl -fsSL https://tuck.hellodigitworks.com/install.sh | sh
+```
+
+It downloads the latest release, puts `Tuck.app` in `/Applications` and opens it. No
+warning appears: macOS only tags files saved from a browser as downloads, and curl is not
+a browser. The script is [`site/install.sh`](site/install.sh), a minute to read, and it touches
+nothing else.
+
+**Or the zip.** Download it from the [latest release](https://github.com/hellodigitworks/Tuck/releases/latest),
+unzip it, and move `Tuck.app` into `/Applications`. Tuck is not signed with an Apple
+developer certificate, so the first open takes three clicks:
 
 1. Double-click Tuck. macOS says it could not verify the app. Click **Done**.
 2. Open System Settings → Privacy & Security, scroll down, and click **Open Anyway**.
-3. Click **Open Anyway** once more. Tuck's plus appears in the menu bar.
+3. Click **Open Anyway** once more. Tuck's mark appears in the menu bar.
 
-On macOS 13 or 14, right-click the app and choose Open instead. Or skip all of it with one
-line in Terminal:
+On macOS 13 or 14, right-click the app and choose Open instead. Or drop the download tag
+with one line in Terminal:
 
 ```bash
 xattr -d com.apple.quarantine /Applications/Tuck.app
@@ -58,7 +67,9 @@ untested.
 
 ## Use it
 
-A plus appears on the right of the menu bar.
+Tuck's mark appears in the menu bar, and the first time a welcome window comes with it:
+the three moves below, in one screen. The moment icons are hidden for the first time it
+turns into Preferences and stays out of the way.
 
 - Hold ⌘ and drag any icon to the left of the mark. It now hides with the rest.
 - Click the mark to hide or show them. `+` means hidden, `✕` means showing.
@@ -125,7 +136,7 @@ npx wrangler pages deploy . --project-name tuck --branch main
 | `scripts/` | Build script, test script, icon generator and image generator |
 | `icons/` | Generated app icon |
 | `fonts/` | Fraunces and Inter, the two faces the app ships. Generated |
-| `site/` | The landing page, deployed as it is |
+| `site/` | The landing page and the install script, deployed as they are |
 | `tests/` | Checks for the settings and update logic |
 | `docs/images/` | The pictures in this README, the social card and the lab shot. Generated |
 | `build/` | The finished app and the release zip (generated, not committed) |
