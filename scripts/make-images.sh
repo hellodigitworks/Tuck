@@ -1,13 +1,10 @@
 #!/bin/zsh
-# Makes every picture in docs/images: the window, the README hero, the before and after
-# menu bar, the social card and the shot for hdw lab. Run: zsh scripts/make-images.sh
+# Makes every picture in docs/images and site/images: the window, the README hero, the
+# before and after menu bar, the social card, the link preview, the lab shot and the
+# landing page's icons. Run: zsh scripts/make-images.sh
 #
 # Needs Tuck installed in /Applications (zsh scripts/make-app.sh --install). It relaunches
 # Tuck so the little demo in the window is caught in its opening "showing" state.
-#
-# Delight and Basis Grotesque Mono are hdw's fonts. Their licences do not allow them in this
-# repo, so they are read from the hdwOS folder next door when it is there. Without them the
-# pictures come out in the system font, same shapes, so anyone can regenerate them.
 set -e
 cd "$(dirname "$0")/.."
 mkdir -p docs/images
@@ -38,8 +35,5 @@ fi
 screencapture -l "$WID" -o -x docs/images/window.png
 echo "  window.png"
 
-# 2. Draw the rest around it.
-FONTS="../hdwOS/assets/fonts"
-DELIGHT="${DELIGHT:-$FONTS/delight-regular.otf}" \
-BASIS_MONO="${BASIS_MONO:-$FONTS/basisgrotesquemono-regular.ttf}" \
+# 2. Draw the rest around it, in the fonts the app ships.
 swift scripts/make-images.swift

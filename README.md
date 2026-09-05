@@ -6,6 +6,8 @@ Hides the menu bar icons you are not using right now. Drag them to the left of T
 mark, click it, and they are out of sight. Click again and they are back. Nothing is
 removed and nothing is running except one small menu bar app.
 
+**[tuck.hellodigitworks.com](https://tuck.hellodigitworks.com/)** · [Download](https://github.com/hellodigitworks/Tuck/releases/latest/download/Tuck.zip)
+
 One mark and nothing else: a plus while the icons are hidden, an ✕ while they are
 showing. It rotates between the two. No line, no gap, nothing else in the bar.
 
@@ -83,17 +85,29 @@ zsh scripts/make-app.sh
 ```
 
 Add `--install` to copy the finished app into `/Applications`, or `--release` to also write
-`build/Tuck-<version>.zip`, the file to attach to a GitHub release. Tests:
+`build/Tuck.zip`, the file to attach to a GitHub release. Tests:
 
 ```bash
 zsh scripts/test.sh
 ```
 
-The pictures above, the social card and the shot for hdw lab all come from one script, so
-none of them is ever edited by hand:
+The pictures above, the social card, the landing page's icons and the shot for hdw lab all
+come from one script, so none of them is ever edited by hand:
 
 ```bash
 zsh scripts/make-images.sh
+```
+
+The two typefaces, Fraunces and Inter, are built from their open-licence sources by
+`scripts/make-fonts.py`: small static files for the app, woff2 for the page.
+
+## The landing page
+
+`site/` is tuck.hellodigitworks.com: one page, no build step, its own Cloudflare Pages
+project. Deploy from that folder:
+
+```bash
+npx wrangler pages deploy . --project-name tuck --branch main
 ```
 
 ## Folders
@@ -105,6 +119,8 @@ zsh scripts/make-images.sh
 | `src/ui/` | The mark artwork, the preferences window and the shortcut recorder |
 | `scripts/` | Build script, test script, icon generator and image generator |
 | `icons/` | Generated app icon |
+| `fonts/` | Fraunces and Inter, the two faces the app ships. Generated |
+| `site/` | The landing page, deployed as it is |
 | `tests/` | Checks for the settings and shortcut logic |
 | `docs/images/` | The pictures in this README, the social card and the lab shot. Generated |
 | `build/` | The finished app and the release zip (generated, not committed) |

@@ -1,0 +1,3 @@
+User-agent: *
+Allow: /
+Sitemap: https://tuck.hellodigitworks.com/sitemap.xml

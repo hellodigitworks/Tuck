@@ -1,0 +1,158 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
+  <title>Tuck</title>
+  <meta name="description" content="Tuck hides the menu bar icons you are not using right now. One click and they are out of sight, one more and they are back. A small, free Mac app." />
+  <link rel="canonical" href="https://tuck.hellodigitworks.com/" />
+  <meta name="theme-color" content="#F4EFE6" />
+  <meta name="color-scheme" content="light" />
+
+  <meta property="og:type" content="website" />
+  <meta property="og:site_name" content="Tuck" />
+  <meta property="og:title" content="Tuck" />
+  <meta property="og:description" content="Hides the menu bar icons you are not using right now. A small, free Mac app." />
+  <meta property="og:url" content="https://tuck.hellodigitworks.com/" />
+  <meta property="og:image" content="https://tuck.hellodigitworks.com/images/og.png?v=1" />
+  <meta property="og:image:width" content="1200" />
+  <meta property="og:image:height" content="630" />
+  <meta name="twitter:card" content="summary_large_image" />
+  <meta name="twitter:title" content="Tuck" />
+  <meta name="twitter:description" content="Hides the menu bar icons you are not using right now. A small, free Mac app." />
+  <meta name="twitter:image" content="https://tuck.hellodigitworks.com/images/og.png?v=1" />
+
+  <link rel="icon" href="images/favicon.svg?v=1" type="image/svg+xml" />
+  <link rel="icon" href="images/favicon-32.png?v=1" sizes="32x32" type="image/png" />
+  <link rel="apple-touch-icon" href="images/apple-touch-icon.png?v=1" />
+  <link rel="manifest" href="site.webmanifest?v=1" />
+
+  <link rel="preload" href="fonts/fraunces.woff2" as="font" type="font/woff2" crossorigin />
+  <link rel="preload" href="fonts/inter.woff2" as="font" type="font/woff2" crossorigin />
+  <link rel="stylesheet" href="css/tuck.css?v=1" />
+</head>
+<body>
+
+  <header class="top">
+    <a class="brand" href="/" aria-label="Tuck">
+      <svg class="brand-mark" viewBox="0 0 24 24" aria-hidden="true"><path d="M12 4v16M4 12h16"/></svg>
+      <span>Tuck</span>
+    </a>
+    <nav class="top-links">
+      <a href="https://github.com/hellodigitworks/Tuck">GitHub</a>
+      <a class="button button-small" href="https://github.com/hellodigitworks/Tuck/releases/latest/download/Tuck.zip">Download</a>
+    </nav>
+  </header>
+
+  <main>
+
+    <section class="hero">
+      <p class="eyebrow reveal" style="--i:0">A small Mac app</p>
+      <h1 class="reveal" style="--i:1">A quieter<br /><em>menu bar.</em></h1>
+      <p class="lead reveal" style="--i:2">
+        Tuck hides the icons you are not using right now. One click and they are out of
+        sight. One more and they are back. Nothing is removed, and nothing is running but
+        one small app.
+      </p>
+      <div class="cta reveal" style="--i:3">
+        <a class="button" href="https://github.com/hellodigitworks/Tuck/releases/latest/download/Tuck.zip">Download for Mac</a>
+        <span class="fine">Free &middot; macOS 13 or later &middot; Apple silicon &middot; about 300 KB</span>
+      </div>
+    </section>
+
+    <!-- The menu bar, playing what Tuck does. CSS only: the four icons on the left slide
+         behind the mark and come back, the mark turns from an ✕ to a plus and back. -->
+    <section class="demo reveal" style="--i:4" aria-label="What Tuck does">
+      <div class="bar">
+        <div class="bar-left" aria-hidden="true">
+          <span class="dot"></span><span class="dot"></span><span class="dot"></span>
+        </div>
+        <div class="bar-right">
+          <div class="hides" aria-hidden="true">
+            <svg viewBox="0 0 24 24"><path d="M2.5 9.5a14 14 0 0 1 19 0M5.5 12.8a9.5 9.5 0 0 1 13 0M8.6 16a5 5 0 0 1 6.8 0"/><circle cx="12" cy="19" r="1.2" fill="currentColor" stroke="none"/></svg>
+            <svg viewBox="0 0 24 24"><path d="M7 18h10a4 4 0 0 0 .5-8A6 6 0 0 0 6 11.5 3.5 3.5 0 0 0 7 18z"/></svg>
+            <svg viewBox="0 0 24 24"><path d="M6 16V11a6 6 0 0 1 12 0v5l1.5 2h-15zM10 20h4"/></svg>
+            <svg viewBox="0 0 24 24"><path d="M14 3a8 8 0 1 0 7 11.5A7 7 0 0 1 14 3z"/></svg>
+          </div>
+          <span class="mark" aria-hidden="true">
+            <svg viewBox="0 0 24 24"><path d="M12 4v16M4 12h16"/></svg>
+          </span>
+          <div class="stays" aria-hidden="true">
+            <svg viewBox="0 0 24 24"><rect x="2.5" y="7.5" width="16" height="9" rx="2"/><path d="M21 10.5v3"/><rect x="4.5" y="9.5" width="12" height="5" rx="1" fill="currentColor" stroke="none"/></svg>
+            <svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="8.5"/><path d="M12 7.5V12l3 2"/></svg>
+          </div>
+          <span class="clock" aria-hidden="true">Mon 10:24</span>
+        </div>
+      </div>
+      <p class="caption">The mark stays put. Everything to its left tucks away.</p>
+    </section>
+
+    <section class="steps">
+      <div class="step">
+        <span class="step-n">1</span>
+        <h2>Drag</h2>
+        <p>Hold <kbd>⌘</kbd> and drag any icon to the left of the mark. It now hides with the rest.</p>
+      </div>
+      <div class="step">
+        <span class="step-n">2</span>
+        <h2>Click</h2>
+        <p>Click <kbd>✕</kbd> and they are gone. Click <kbd>+</kbd> and they are back. Nothing moves anywhere else.</p>
+      </div>
+      <div class="step">
+        <span class="step-n">3</span>
+        <h2>Forget it</h2>
+        <p>They hide again on their own after ten seconds. Or from a shortcut, Raycast, or a script, from any app.</p>
+      </div>
+    </section>
+
+    <section class="window">
+      <div class="window-text">
+        <h2>One window.<br />Everything is in it.</h2>
+        <p>
+          Start at login, how long the icons stay out, a keyboard shortcut that works from
+          anywhere. That is the whole list. Tuck is a menu bar app, so there is no Dock icon
+          and no window you did not ask for.
+        </p>
+        <p class="fine">
+          From Raycast, Shortcuts or a script:
+          <code>/Applications/Tuck.app/Contents/MacOS/Tuck --toggle</code>
+        </p>
+      </div>
+      <figure class="window-shot">
+        <img src="images/window.jpg?v=1" alt="Tuck's preferences window: a cream card with a live demo of the menu bar, settings for start at login and auto hide, and a keyboard shortcut recorder." width="500" height="866" decoding="async" />
+      </figure>
+    </section>
+
+    <section class="install">
+      <h2>Opening it the first time</h2>
+      <p>
+        Tuck is not signed with an Apple developer certificate, which costs more than Tuck
+        will ever make. So the first open takes three clicks.
+      </p>
+      <ol>
+        <li><span>Double-click Tuck. macOS says it could not verify the app. Click <strong>Done</strong>.</span></li>
+        <li><span>Open System Settings, then Privacy &amp; Security, scroll down, and click <strong>Open Anyway</strong>.</span></li>
+        <li><span>Click <strong>Open Anyway</strong> once more. The plus appears in your menu bar.</span></li>
+      </ol>
+      <p class="fine">
+        On macOS 13 or 14, right-click the app and choose Open instead. Or skip all of it with
+        one line in Terminal: <code>xattr -d com.apple.quarantine /Applications/Tuck.app</code>
+      </p>
+      <p class="fine">Open source, MIT. Read every line on <a href="https://github.com/hellodigitworks/Tuck">GitHub</a>.</p>
+    </section>
+
+  </main>
+
+  <footer class="foot">
+    <span>Made by <a href="https://lab.hellodigitworks.com/">hdw lab</a></span>
+    <span><a href="https://github.com/hellodigitworks/Tuck">GitHub</a></span>
+    <span>&copy; 2026 hdw</span>
+  </footer>
+
+  <script>
+    if ('serviceWorker' in navigator) {
+      navigator.serviceWorker.register('sw.js').catch(function () {});
+    }
+  </script>
+</body>
+</html>

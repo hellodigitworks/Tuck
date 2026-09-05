@@ -1,7 +1,7 @@
 #!/bin/zsh
 # Builds Tuck.app from source. Run: zsh scripts/make-app.sh [--install] [--release]
 #   --install  copy the finished app into /Applications
-#   --release  also write build/Tuck-<version>.zip, the file to attach to a GitHub release
+#   --release  also write build/Tuck.zip, the file to attach to a GitHub release
 set -e
 cd "$(dirname "$0")/.."
 
@@ -26,6 +26,11 @@ if [ ! -f icons/AppIcon.icns ]; then
   swift scripts/make-icon.swift
 fi
 cp icons/AppIcon.icns "$APP/Contents/Resources/AppIcon.icns"
+
+# The two faces the window uses. macOS registers everything in Resources/Fonts on its own
+# (ATSApplicationFontsPath below), so there is no font code in the app at all.
+mkdir -p "$APP/Contents/Resources/Fonts"
+cp fonts/*.ttf fonts/OFL-*.txt "$APP/Contents/Resources/Fonts/"
 
 cat > "$APP/Contents/Info.plist" <<PLIST
 <?xml version="1.0" encoding="UTF-8"?>
@@ -60,6 +65,8 @@ cat > "$APP/Contents/Info.plist" <<PLIST
     <string>NSApplication</string>
     <key>NSHumanReadableCopyright</key>
     <string>© 2026 hdw</string>
+    <key>ATSApplicationFontsPath</key>
+    <string>Fonts</string>
 </dict>
 </plist>
 PLIST
@@ -78,9 +85,10 @@ for flag in "$@"; do
       cp -R "$APP" "/Applications/$APP_NAME.app"
       echo "Installed: /Applications/$APP_NAME.app"
       ;;
-    # The zip people download. ditto keeps the bundle intact, unlike plain zip.
+    # The zip people download. ditto keeps the bundle intact, unlike plain zip. No version
+    # in the name, so the landing page's link to the latest release never goes stale.
     --release)
-      ZIP="build/$APP_NAME-$VERSION.zip"
+      ZIP="build/$APP_NAME.zip"
       rm -f "$ZIP"
       ditto -c -k --keepParent "$APP" "$ZIP"
       echo "Release: $ZIP ($(du -h "$ZIP" | cut -f1))"

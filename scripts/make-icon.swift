@@ -1,4 +1,4 @@
-// Generates the Tuck app icon: white rounded square, orange mark.
+// Generates the Tuck app icon: cream rounded square, orange mark.
 // The same mark Tuck shows in the menu bar, caught mid-rotation between plus and X.
 // Regenerate with: swift scripts/make-icon.swift
 // Output: icons/AppIcon.icns (plus the intermediate iconset)
@@ -7,7 +7,7 @@ import AppKit
 import CoreGraphics
 
 let orange = CGColor(red: 1.0, green: 0.18, blue: 0.0, alpha: 1.0)
-let white = CGColor(red: 1.0, green: 1.0, blue: 1.0, alpha: 1.0)
+let cream = CGColor(red: 0.957, green: 0.937, blue: 0.902, alpha: 1.0)
 
 func draw(size: Int) -> CGImage? {
     let s = CGFloat(size)
@@ -23,7 +23,7 @@ func draw(size: Int) -> CGImage? {
     let rect = CGRect(x: margin, y: margin, width: s - margin * 2, height: s - margin * 2)
     let radius = rect.width * 0.225
     ctx.addPath(CGPath(roundedRect: rect, cornerWidth: radius, cornerHeight: radius, transform: nil))
-    ctx.setFillColor(white)
+    ctx.setFillColor(cream)
     ctx.fillPath()
 
     // The mark: two crossed strokes. Upright is a plus, 45 degrees is an X.

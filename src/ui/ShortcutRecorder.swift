@@ -36,8 +36,9 @@ final class ShortcutRecorderView: NSView {
         }
     }
 
-    /// The house outline: white edge, orange while it listens.
-    private static let edge = NSColor(white: 1, alpha: 0.35)
+    /// The house outline: a warm edge, orange while it listens.
+    private static let edge = NSColor(red: 0.812, green: 0.776, blue: 0.722, alpha: 1)
+    private static let ink = NSColor(red: 0.078, green: 0.071, blue: 0.059, alpha: 1)
     private static let accent = NSColor(red: 1, green: 0.18, blue: 0, alpha: 1)
 
     override init(frame: NSRect) {
@@ -48,8 +49,8 @@ final class ShortcutRecorderView: NSView {
         layer?.borderWidth = 1
         layer?.borderColor = ShortcutRecorderView.edge.cgColor
         button.isBordered = false
-        button.font = .systemFont(ofSize: 13)
-        button.contentTintColor = .white
+        button.font = NSFont(name: "Inter-Medium", size: 13) ?? .systemFont(ofSize: 13)
+        button.contentTintColor = ShortcutRecorderView.ink
         button.target = self
         button.action = #selector(buttonClicked)
         button.translatesAutoresizingMaskIntoConstraints = false

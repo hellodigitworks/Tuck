@@ -1,0 +1,11 @@
+# Tuck's landing page: its own Cloudflare Pages project.
+#
+# Deploying from this folder:
+#   npx wrangler pages deploy . --project-name tuck --branch main
+#
+# Attach tuck.hellodigitworks.com to the project once, in the Cloudflare dashboard under
+# Pages > tuck > Custom domains. Nothing here does that for you.
+
+name = "tuck"
+pages_build_output_dir = "."
+compatibility_date = "2026-08-01"

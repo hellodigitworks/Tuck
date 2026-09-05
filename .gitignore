@@ -3,3 +3,7 @@ build/
 icons/AppIcon.iconset/
 .DS_Store
 .claude-flow/
+fonts/source/
+
+.wrangler/
+.claude/
