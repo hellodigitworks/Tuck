@@ -1,6 +1,5 @@
 import AppKit
 import Combine
-import os
 import QuartzCore
 import TuckCore
 
@@ -30,7 +29,6 @@ import TuckCore
 ///   constraint is not found, the items simply rest at 16pt as they used to.
 final class StatusBarController: NSObject, NSMenuDelegate {
     private let preferences: Preferences
-    private let log = Logger(subsystem: "com.hdw.tuck", category: "menubar")
 
     /// Every item Tuck owns, in creation order. Position decides which is the mark.
     private let items: [NSStatusItem]
@@ -80,9 +78,12 @@ final class StatusBarController: NSObject, NSMenuDelegate {
         spacers = rest
         super.init()
 
-        for item in items {
-            widthHolders[ObjectIdentifier(item)] = StatusBarController.widthHolder(of: item)
+        for (index, item) in items.enumerated() {
+            let holder = StatusBarController.widthHolder(of: item)
+            widthHolders[ObjectIdentifier(item)] = holder
+            Log.note("Item \(index) width holder: \(holder.map { "found (\($0.constant)pt)" } ?? "MISSING")")
         }
+        Log.note("Launched \(Bundle.main.infoDictionary?["CFBundleShortVersionString"] as? String ?? "?") on macOS \(ProcessInfo.processInfo.operatingSystemVersionString), screens \(NSScreen.screens.map { Int($0.frame.width) }), \(rest.count) spacers")
         configureRoles()
         observePreferences()
 
@@ -161,7 +162,7 @@ final class StatusBarController: NSObject, NSMenuDelegate {
             mark = newMark
             spacers = newSpacers
             configureRoles()
-            log.notice("Roles reassigned by position")
+            Log.note("Roles reassigned by position: \(layoutDescription())")
         }
         return true
     }
@@ -222,9 +223,10 @@ final class StatusBarController: NSObject, NSMenuDelegate {
                 let settled = min(total + 200, limit)
                 self.share(settled, across: items)
                 self.remember(total)
-                self.log.notice("Hidden with \(Int(settled))pt, opened at \(Int(self.startingWidth))")
+                Log.note("Hidden with \(Int(settled))pt (ceiling \(Int(self.widthCeiling)) × \(items.count)), opened at \(Int(self.startingWidth)): \(self.layoutDescription())")
                 return
             }
+            Log.note("Ramp \(Int(total))pt, far edge \(Int(edge))")
             self.grow(items, token: token, total: min(total + Self.rampStep, limit), lastEdge: edge)
         }
     }
@@ -312,7 +314,10 @@ final class StatusBarController: NSObject, NSMenuDelegate {
 
     @objc private func someWindowMoved(_ notification: Notification) {
         guard !isCollapsed, let window = notification.object as? NSWindow else { return }
-        if items.contains(where: { $0.button?.window === window }) { scheduleRolesRefresh() }
+        if let index = items.firstIndex(where: { $0.button?.window === window }) {
+            Log.note("Item \(index) moved to x=\(Int(window.frame.origin.x)) w=\(Int(window.frame.width))")
+            scheduleRolesRefresh()
+        }
     }
 
     private func observePreferences() {
@@ -367,9 +372,10 @@ final class StatusBarController: NSObject, NSMenuDelegate {
     func collapse() {
         guard !isCollapsed else { return }
         guard assignRoles() else {
-            log.notice("Not hiding yet: the menu bar has not settled.")
+            Log.note("Not hiding yet: the menu bar has not settled. \(layoutDescription())")
             return
         }
+        Log.note("Hiding: \(layoutDescription())")
         isCollapsed = true
         autoHideTimer?.invalidate()
         rolesRefresh?.cancel()
@@ -386,7 +392,7 @@ final class StatusBarController: NSObject, NSMenuDelegate {
         scheduleAutoHideIfNeeded()
         // The bar shuffles as the icons come back, so read the roles again once it settles.
         scheduleRolesRefresh(after: 0.6)
-        log.notice("Icons shown: mark x=\(Int(self.mark.button?.window?.frame.origin.x ?? -1))")
+        Log.note("Showing: \(layoutDescription())")
     }
 
     private func collapseWhenReady(attempt: Int) {
@@ -397,12 +403,12 @@ final class StatusBarController: NSObject, NSMenuDelegate {
                 if self.preferences.hasHiddenBefore {
                     self.collapse()
                 } else {
-                    self.log.notice("First launch: staying open")
+                    Log.note("First launch: staying open. \(self.layoutDescription())")
                 }
             } else if attempt < 6 {
                 self.collapseWhenReady(attempt: attempt + 1)
             } else {
-                self.log.notice("Did not hide: the menu bar never settled.")
+                Log.note("Did not hide: the menu bar never settled. \(self.layoutDescription())")
             }
         }
     }
@@ -443,7 +449,7 @@ final class StatusBarController: NSObject, NSMenuDelegate {
     }
 
     @objc private func screenParametersChanged() {
-        log.notice("Screens changed: one item may now take \(Int(self.widthCeiling))pt")
+        Log.note("Screens changed to \(NSScreen.screens.map { Int($0.frame.width) }): one item may now take \(Int(self.widthCeiling))pt")
         guard isCollapsed else {
             applyLayout()
             return
@@ -463,9 +469,44 @@ final class StatusBarController: NSObject, NSMenuDelegate {
             } else if attempt < 6 {
                 self.hideAgainAfterScreenChange(attempt: attempt + 1)
             } else {
-                self.log.notice("Did not hide after the screen changed: the menu bar never settled.")
+                Log.note("Did not hide after the screen changed: the menu bar never settled.")
             }
         }
+    }
+
+    // MARK: - Diagnostics
+
+    /// Every item in one line: role, length, where its window is. What a bug report needs.
+    private func layoutDescription() -> String {
+        items.enumerated().map { index, item in
+            let role = item === mark ? "mark" : "spacer"
+            let frame = item.button?.window?.frame ?? .zero
+            let holder = widthHolders[ObjectIdentifier(item)]
+            let held = holder.map { $0.isActive ? "held" : "free" } ?? "noholder"
+            return "\(index):\(role) len=\(Int(item.length)) x=\(Int(frame.origin.x)) w=\(Int(frame.width)) \(held)\(item.isVisible ? "" : " invisible")"
+        }.joined(separator: " | ")
+    }
+
+    /// A report a person can paste into a message: the Mac, the screens, every item, the log.
+    func diagnosticsReport() -> String {
+        let version = Bundle.main.infoDictionary?["CFBundleShortVersionString"] as? String ?? "?"
+        let screens = NSScreen.screens.map { "\(Int($0.frame.origin.x)),\(Int($0.frame.origin.y)) \(Int($0.frame.width))×\(Int($0.frame.height))\($0 == NSScreen.main ? " main" : "")" }
+        return """
+        Tuck \(version) on macOS \(ProcessInfo.processInfo.operatingSystemVersionString)
+        Screens: \(screens.joined(separator: "; "))
+        State: \(isCollapsed ? "hidden" : "showing"), ceiling \(Int(widthCeiling))pt, remembered \(Int(preferences.hidingWidth))pt for a \(Int(preferences.hidingBarWidth))pt bar
+        Items: \(layoutDescription())
+
+        Log:
+        \(Log.tail())
+        """
+    }
+
+    @objc private func menuCopyDiagnostics() {
+        let report = diagnosticsReport()
+        NSPasteboard.general.clearContents()
+        NSPasteboard.general.setString(report, forType: .string)
+        Log.note("Diagnostics copied")
     }
 
     // MARK: - Context menu
@@ -489,6 +530,10 @@ final class StatusBarController: NSObject, NSMenuDelegate {
         let prefs = NSMenuItem(title: "Preferences…", action: #selector(menuOpenPreferences), keyEquivalent: ",")
         prefs.target = self
         menu.addItem(prefs)
+
+        let report = NSMenuItem(title: "Copy Diagnostics", action: #selector(menuCopyDiagnostics), keyEquivalent: "")
+        report.target = self
+        menu.addItem(report)
 
         menu.addItem(.separator())
         menu.addItem(NSMenuItem(title: "Quit Tuck", action: #selector(NSApplication.terminate(_:)), keyEquivalent: "q"))

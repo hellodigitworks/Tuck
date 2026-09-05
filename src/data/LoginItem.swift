@@ -1,5 +1,4 @@
 import Foundation
-import os
 import ServiceManagement
 
 /// Start at login, through the system's own list
@@ -16,7 +15,7 @@ public enum LoginItem {
 
     /// Returns a message if macOS refused, otherwise nil.
     public static func setEnabled(_ enabled: Bool) -> String? {
-        Logger(subsystem: "com.hdw.tuck", category: "login").notice("Start at login set to \(enabled)")
+        Log.note("Start at login set to \(enabled)")
         do {
             if enabled {
                 try SMAppService.mainApp.register()
