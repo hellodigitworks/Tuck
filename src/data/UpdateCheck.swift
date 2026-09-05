@@ -1,6 +1,6 @@
 import Foundation
 
-/// Asks GitHub now and then whether a newer Tuck exists, and says so. Never downloads
+/// Asks GitHub now and then whether a newer Duck exists, and says so. Never downloads
 /// anything on its own: the person clicks through to the release page.
 public final class UpdateCheck: ObservableObject {
     public struct Release: Equatable {
@@ -15,7 +15,7 @@ public final class UpdateCheck: ObservableObject {
     @Published public private(set) var newer: Release?
 
     private let current: String
-    private let endpoint = URL(string: "https://api.github.com/repos/hellodigitworks/Tuck/releases/latest")!
+    private let endpoint = URL(string: "https://api.github.com/repos/hellodigitworks/Duck/releases/latest")!
     private var timer: Timer?
     private static let interval: TimeInterval = 6 * 60 * 60
 
@@ -23,7 +23,7 @@ public final class UpdateCheck: ObservableObject {
         self.current = current
     }
 
-    /// A first look a few seconds after launch, then every six hours while Tuck runs.
+    /// A first look a few seconds after launch, then every six hours while Duck runs.
     public func start() {
         DispatchQueue.main.asyncAfter(deadline: .now() + 4) { [weak self] in self?.check() }
         timer = Timer.scheduledTimer(withTimeInterval: Self.interval, repeats: true) { [weak self] _ in
@@ -34,7 +34,7 @@ public final class UpdateCheck: ObservableObject {
     public func check() {
         var request = URLRequest(url: endpoint, timeoutInterval: 15)
         request.setValue("application/vnd.github+json", forHTTPHeaderField: "Accept")
-        request.setValue("Tuck/\(current)", forHTTPHeaderField: "User-Agent")
+        request.setValue("Duck/\(current)", forHTTPHeaderField: "User-Agent")
         URLSession.shared.dataTask(with: request) { [weak self] data, _, _ in
             guard let self, let data, let release = Self.parse(data) else { return }
             guard Self.isNewer(release.version, than: self.current) else { return }

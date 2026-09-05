@@ -1,6 +1,6 @@
 import AppKit
 import SwiftUI
-import TuckCore
+import DuckCore
 
 /// One preferences window for the life of the app. Closing it just hides it.
 /// Cream, always: the window forces the light appearance so the system controls agree with it.
@@ -13,7 +13,7 @@ final class PreferencesWindowController: NSWindowController {
             styleMask: [.titled, .closable, .miniaturizable, .resizable, .fullSizeContentView],
             backing: .buffered,
             defer: false)
-        window.title = "Tuck"
+        window.title = "Duck"
         window.titleVisibility = .hidden
         window.titlebarAppearsTransparent = true
         window.appearance = NSAppearance(named: .aqua)
@@ -25,7 +25,7 @@ final class PreferencesWindowController: NSWindowController {
         window.contentViewController = NSHostingController(
             rootView: PreferencesView(preferences: .shared, login: LoginItemModel(), updates: .shared))
         window.setContentSize(NSSize(width: 500, height: 620))
-        window.setFrameAutosaveName("TuckPreferences")
+        window.setFrameAutosaveName("DuckPreferences")
         super.init(window: window)
     }
 
@@ -36,7 +36,7 @@ final class PreferencesWindowController: NSWindowController {
 
     func show() {
         guard let window else { return }
-        if !window.isVisible, !window.setFrameUsingName("TuckPreferences") {
+        if !window.isVisible, !window.setFrameUsingName("DuckPreferences") {
             window.center()
         }
         NSApp.activate(ignoringOtherApps: true)

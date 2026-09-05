@@ -1,22 +1,23 @@
-# Tuck
+# Duck
 
-![Tuck](docs/images/hero.png)
+![Duck](docs/images/hero.png)
 
-Hides the menu bar icons you are not using right now. Drag them to the left of Tuck's
+Hides the menu bar icons you are not using right now. Drag them to the left of Duck's
 mark, click it, and they are out of sight. Click again and they are back. Nothing is
 removed and nothing is running except one small menu bar app.
 
-**[tuck.hellodigitworks.com](https://tuck.hellodigitworks.com/)** · [Download](https://github.com/hellodigitworks/Tuck/releases/latest/download/Tuck.zip)
+**[duck.hellodigitworks.com](https://duck.hellodigitworks.com/)** · [Download](https://github.com/hellodigitworks/Duck/releases/latest/download/Duck.zip)
 
 One mark and nothing else: a plus while the icons are hidden, an ✕ while they are
-showing. It rotates between the two. No line, no gap, nothing else in the bar.
+showing. It rotates between the two. No line, no gap, nothing else in the bar. Four other
+looks in Preferences if the plus is not yours: chevron, dot, line, corner.
 
 ## How it hides
 
-![A crowded menu bar, then the same bar with Tuck](docs/images/menubar.png)
+![A crowded menu bar, then the same bar with Duck](docs/images/menubar.png)
 
 macOS lays out menu bar icons from the right, and an icon that does not fit drops off the
-left end. Tuck keeps a few empty items just left of its mark and widens them until the bar
+left end. Duck keeps a few empty items just left of its mark and widens them until the bar
 is full, which takes every icon past them out of view. Narrow them again and the icons come
 straight back.
 
@@ -24,7 +25,7 @@ Three details, all measured on macOS 27:
 
 - **The width has to go up in steps.** Set it in one jump and macOS shuffles the icons
   sideways and keeps them on screen: a gap where the icons were, nothing hidden. So the
-  first hide on a screen walks the width up, then Tuck remembers what worked and opens
+  first hide on a screen walks the width up, then Duck remembers what worked and opens
   there next time. That is why the icons only slide across the bar once.
 - **One item can only take about half the screen.** Past that macOS ignores it, so the
   width is shared across several items instead of piled onto one.
@@ -39,27 +40,27 @@ Three details, all measured on macOS 27:
 One line in Terminal:
 
 ```bash
-curl -fsSL https://tuck.hellodigitworks.com/install.sh | sh
+curl -fsSL https://duck.hellodigitworks.com/install.sh | sh
 ```
 
-It downloads the latest release, puts `Tuck.app` in `/Applications` and opens it. No
+It downloads the latest release, puts `Duck.app` in `/Applications` and opens it. No
 warning appears: macOS only tags files saved from a browser as downloads, and curl is not
 a browser. The script is [`site/install.sh`](site/install.sh), a minute to read, and it touches
 nothing else.
 
-**Or the zip.** Download it from the [latest release](https://github.com/hellodigitworks/Tuck/releases/latest),
-unzip it, and move `Tuck.app` into `/Applications`. Tuck is not signed with an Apple
+**Or the zip.** Download it from the [latest release](https://github.com/hellodigitworks/Duck/releases/latest),
+unzip it, and move `Duck.app` into `/Applications`. Duck is not signed with an Apple
 developer certificate, so the first open takes three clicks:
 
-1. Double-click Tuck. macOS says it could not verify the app. Click **Done**.
+1. Double-click Duck. macOS says it could not verify the app. Click **Done**.
 2. Open System Settings → Privacy & Security, scroll down, and click **Open Anyway**.
-3. Click **Open Anyway** once more. Tuck's mark appears in the menu bar.
+3. Click **Open Anyway** once more. Duck's mark appears in the menu bar.
 
 On macOS 13 or 14, right-click the app and choose Open instead. Or drop the download tag
 with one line in Terminal:
 
 ```bash
-xattr -d com.apple.quarantine /Applications/Tuck.app
+xattr -d com.apple.quarantine /Applications/Duck.app
 ```
 
 Needs macOS 13 or later on Apple silicon. Built and tested on macOS 27; older versions are
@@ -67,29 +68,30 @@ untested.
 
 ## Use it
 
-Tuck's mark appears in the menu bar, and the first time its window comes with it.
+Duck's mark appears in the menu bar, and the first time its window comes with it.
 
 - Hold ⌘ and drag any icon to the left of the mark. It now hides with the rest.
 - Click the mark to hide or show them. `+` means hidden, `✕` means showing.
-- The very first time nothing hides until you click ✕. After that Tuck starts hidden.
+- The very first time nothing hides until you click ✕. After that Duck starts hidden.
 - They hide again on their own after 10 seconds. Change or switch that off in Preferences.
-- Right-click the mark for the menu: show, hide, Preferences, Copy Diagnostics, Quit.
+- Right-click the mark for the menu: show, hide, Preferences, Quit. Hold ⌥ and
+  Preferences becomes Copy Diagnostics.
 
 **Start at login.** A checkbox in Preferences. Move the app to `/Applications` first so
 macOS can always find it.
 
-**Updates.** Tuck asks GitHub once every few hours whether a newer release exists. If one
+**Updates.** Duck asks GitHub once every few hours whether a newer release exists. If one
 does, the window and the right-click menu say so with a link. It never downloads anything
 on its own.
 
-**If something goes wrong.** Right-click the mark and choose Copy Diagnostics: the Mac,
+**If something goes wrong.** Right-click the mark, hold ⌥, and choose Copy Diagnostics: the Mac,
 the screens, every item's position and the recent log land on the clipboard, ready to
-paste into an issue. The log itself is at `~/Library/Logs/Tuck.log`.
+paste into an issue. The log itself is at `~/Library/Logs/Duck.log`.
 
 **From a script, Raycast or Shortcuts:**
 
 ```bash
-/Applications/Tuck.app/Contents/MacOS/Tuck --toggle
+/Applications/Duck.app/Contents/MacOS/Duck --toggle
 ```
 
 ## Rebuild from source
@@ -99,7 +101,7 @@ zsh scripts/make-app.sh
 ```
 
 Add `--install` to copy the finished app into `/Applications`, or `--release` to also write
-`build/Tuck.zip`, the file to attach to a GitHub release. Tests:
+`build/Duck.zip`, the file to attach to a GitHub release. Tests:
 
 ```bash
 zsh scripts/test.sh
@@ -117,8 +119,9 @@ The two typefaces, Fraunces and Inter, are built from their open-licence sources
 
 ## The landing page
 
-`site/` is tuck.hellodigitworks.com: one page, no build step, its own Cloudflare Pages
-project. Deploy from that folder:
+`site/` is duck.hellodigitworks.com: one page, no build step, its own Cloudflare Pages
+project. The project kept its first name, tuck, when the app became Duck; only the address
+changed, and the old one sends people on. Deploy from that folder:
 
 ```bash
 npx wrangler pages deploy . --project-name tuck --branch main

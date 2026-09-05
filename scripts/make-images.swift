@@ -1,9 +1,9 @@
-// Draws the pictures Tuck shows the world, around the window photographed by make-images.sh.
+// Draws the pictures Duck shows the world, around the window photographed by make-images.sh.
 // Run: zsh scripts/make-images.sh  (not this file on its own)
 //
 // docs/images (the README and the lab):
 //   hero.png     1600×900   top of the README
-//   menubar.png  1600×300   a menu bar before and after Tuck, drawn rather than photographed
+//   menubar.png  1600×300   a menu bar before and after Duck, drawn rather than photographed
 //   social.png   1280×640   GitHub's social preview (set once in the repo's settings)
 //   lab.jpg       600×375   the row on lab.hellodigitworks.com
 // site/images (the landing page):
@@ -81,7 +81,22 @@ func text(_ string: String, _ font: NSFont, _ color: NSColor, x: CGFloat, top: C
     return rect.height
 }
 
-/// Tuck's mark: two strokes, a plus at 0 and an ✕ at 45 degrees.
+/// The duck itself, from icons/duck.svg, which make-icon.swift writes. Drawn centred on a
+/// point at a given width, the same everywhere it appears.
+let duckImage: NSImage = {
+    let url = root.appendingPathComponent("icons/duck.svg")
+    guard let image = NSImage(contentsOf: url) else {
+        fatalError("icons/duck.svg is missing. Run: swift scripts/make-icon.swift")
+    }
+    return image
+}()
+
+func duck(at center: NSPoint, width: CGFloat) {
+    NSGraphicsContext.current?.imageInterpolation = .high
+    duckImage.draw(in: NSRect(x: center.x - width / 2, y: center.y - width / 2, width: width, height: width))
+}
+
+/// The mark in the menu bar: two strokes, a plus at 0 and an ✕ at 45 degrees.
 func mark(at center: NSPoint, arm: CGFloat, stroke: CGFloat, angle: CGFloat = 0, _ color: NSColor) {
     let path = NSBezierPath()
     path.lineWidth = stroke
@@ -160,12 +175,12 @@ func window(x: CGFloat, top: CGFloat, width: CGFloat, in frame: NSRect) {
     shape.stroke()
 }
 
-/// The app icon as a full-bleed tile: cream, orange plus. For the web, where the
-/// platform rounds the corners itself.
+/// The app icon as a full-bleed tile: cream, the duck. For the web, where the platform
+/// rounds the corners itself. Transparent: the duck alone, filling the square.
 func tile(_ size: Int, transparent: Bool = false) -> NSBitmapImageRep {
     canvas(size, size, fill: transparent ? nil : paper) { frame in
         let s = CGFloat(size)
-        mark(at: NSPoint(x: s / 2, y: s / 2), arm: s * 0.19, stroke: s * 0.075, orange)
+        duck(at: NSPoint(x: s / 2, y: s / 2), width: transparent ? s : s * 0.82)
     }
 }
 
@@ -183,14 +198,14 @@ let tagline = "Hide the menu bar icons you are not using right now."
 
 // Hero: name and line on the left, the window on the right.
 save(canvas(1600, 900) { frame in
-    mark(at: NSPoint(x: 186, y: frame.height - 186), arm: 42, stroke: 12, orange)
-    text("Tuck", serifBig, ink, x: 140, top: 275, in: frame, tracking: -3)
+    duck(at: NSPoint(x: 206, y: frame.height - 186), width: 140)
+    text("Duck", serifBig, ink, x: 140, top: 275, in: frame, tracking: -3)
     text(tagline, sansBody, muted, x: 142, top: 462, in: frame, width: 600)
     text("macOS 13 or later  ·  Apple silicon  ·  free  ·  MIT", sans, muted, x: 142, top: 790, in: frame)
     window(x: 900, top: 110, width: 600, in: frame)
 }, docs.appendingPathComponent("hero.png"))
 
-// Before and after: a crowded bar, then the same bar with Tuck.
+// Before and after: a crowded bar, then the same bar with Duck.
 let staying = ["wifi", "speaker.wave.2.fill", "battery.100"]
 let hiding = ["cloud.fill", "bell.fill", "moon.fill", "airplayvideo", "bolt.fill", "camera.fill",
               "mic.fill", "paperplane.fill", "keyboard", "display", "drop.fill", "lock.fill"]
@@ -225,15 +240,15 @@ save(canvas(1600, 300) { frame in
 // Social card for GitHub, and the link preview for the landing page.
 func card(_ width: Int, _ height: Int, footer: String) -> NSBitmapImageRep {
     canvas(width, height) { frame in
-        mark(at: NSPoint(x: 138, y: frame.height - 128), arm: 32, stroke: 9, orange)
-        text("Tuck", serifMid, ink, x: 100, top: 196, in: frame, tracking: -2.5)
+        duck(at: NSPoint(x: 156, y: frame.height - 128), width: 112)
+        text("Duck", serifMid, ink, x: 100, top: 196, in: frame, tracking: -2.5)
         text(tagline, sansMid, muted, x: 102, top: 345, in: frame, width: 540)
         text(footer, sans, muted, x: 102, top: CGFloat(height) - 80, in: frame)
         window(x: CGFloat(width) - 480, top: 90, width: 420, in: frame)
     }
 }
-save(card(1280, 640, footer: "github.com/hellodigitworks/Tuck"), docs.appendingPathComponent("social.png"))
-save(card(1200, 630, footer: "tuck.hellodigitworks.com  ·  free for the Mac"), site.appendingPathComponent("og.png"))
+save(card(1280, 640, footer: "github.com/hellodigitworks/Duck"), docs.appendingPathComponent("social.png"))
+save(card(1200, 630, footer: "duck.hellodigitworks.com  ·  free for the Mac"), site.appendingPathComponent("og.png"))
 
 // The lab row: the window alone, the same 600×375 as every other row.
 save(canvas(600, 375) { frame in
@@ -246,3 +261,9 @@ save(tile(512, transparent: true), site.appendingPathComponent("favicon.png"))
 save(tile(180), site.appendingPathComponent("apple-touch-icon.png"))
 save(tile(192), site.appendingPathComponent("icon-192.png"))
 save(tile(512), site.appendingPathComponent("icon-512.png"))
+
+// The tab icon is the duck itself, the same file make-icon.swift wrote.
+let favicon = site.appendingPathComponent("favicon.svg")
+try? FileManager.default.removeItem(at: favicon)
+try! FileManager.default.copyItem(at: root.appendingPathComponent("icons/duck.svg"), to: favicon)
+print("  site/images/favicon.svg")

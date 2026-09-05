@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""Builds the fonts Tuck ships, from the two open-licence variable fonts.
+"""Builds the fonts Duck ships, from the two open-licence variable fonts.
 
 Run: python3 scripts/make-fonts.py   (needs: pip3 install fonttools brotli)
 

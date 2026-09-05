@@ -1,26 +1,26 @@
 #!/bin/zsh
-# Builds Tuck.app from source. Run: zsh scripts/make-app.sh [--install] [--release]
+# Builds Duck.app from source. Run: zsh scripts/make-app.sh [--install] [--release]
 #   --install  copy the finished app into /Applications
-#   --release  also write build/Tuck.zip, the file to attach to a GitHub release
+#   --release  also write build/Duck.zip, the file to attach to a GitHub release
 set -e
 cd "$(dirname "$0")/.."
 
-APP_NAME="Tuck"
-BUNDLE_ID="com.hdw.tuck"
-VERSION="1.3.1"
-BUILD_NUMBER="7"
+APP_NAME="Duck"
+BUNDLE_ID="com.hdw.duck"
+VERSION="1.4.0"
+BUILD_NUMBER="8"
 
 # Build outside the Google Drive folder: Drive sync corrupts incremental
 # build state (files appear where directories should be).
-SCRATCH="$HOME/Library/Caches/tuck-build"
+SCRATCH="$HOME/Library/Caches/duck-build"
 swift build -c release --scratch-path "$SCRATCH"
 
 APP="build/$APP_NAME.app"
 rm -rf "$APP"
 mkdir -p "$APP/Contents/MacOS" "$APP/Contents/Resources"
-cp "$SCRATCH/release/Tuck" "$APP/Contents/MacOS/Tuck"
+cp "$SCRATCH/release/Duck" "$APP/Contents/MacOS/Duck"
 # Symbol names are only useful to a debugger. Dropping them halves the binary.
-strip "$APP/Contents/MacOS/Tuck"
+strip "$APP/Contents/MacOS/Duck"
 
 if [ ! -f icons/AppIcon.icns ]; then
   swift scripts/make-icon.swift
@@ -44,7 +44,7 @@ cat > "$APP/Contents/Info.plist" <<PLIST
     <key>CFBundleIdentifier</key>
     <string>$BUNDLE_ID</string>
     <key>CFBundleExecutable</key>
-    <string>Tuck</string>
+    <string>Duck</string>
     <key>CFBundleIconFile</key>
     <string>AppIcon</string>
     <key>CFBundlePackageType</key>
@@ -79,7 +79,7 @@ for flag in "$@"; do
   case "$flag" in
     # Install to /Applications so it behaves like a real app and can start at login.
     --install)
-      pkill -x Tuck 2>/dev/null || true
+      pkill -x Duck 2>/dev/null || true
       sleep 1
       rm -rf "/Applications/$APP_NAME.app"
       cp -R "$APP" "/Applications/$APP_NAME.app"

@@ -1,5 +1,5 @@
 import SwiftUI
-import TuckCore
+import DuckCore
 
 /// The look: cream paper, ink text, one orange. Fraunces for the words that set the room,
 /// Inter for the rest. Soft cards, round corners, a spring on everything that moves.
@@ -34,7 +34,7 @@ struct PreferencesView: View {
     var body: some View {
         VStack(alignment: .leading, spacing: 18) {
             VStack(alignment: .leading, spacing: 4) {
-                Text("Tuck")
+                Text("Duck")
                     .font(Type.serif(42))
                 Text("Hide the menu bar icons you are not using right now.")
                     .font(Type.sans(15))
@@ -42,7 +42,7 @@ struct PreferencesView: View {
             }
 
             Card {
-                MenuBarDemo()
+                MenuBarDemo(style: preferences.markStyle)
             }
 
             VStack(alignment: .leading, spacing: 6) {
@@ -75,24 +75,36 @@ struct PreferencesView: View {
                     .opacity(preferences.autoHide ? 1 : 0.35)
                     .disabled(!preferences.autoHide)
                     .animation(Ink.spring, value: preferences.autoHide)
+
+                    // The mark's look: each chip shows its hidden shape and its showing shape.
+                    HStack(spacing: 6) {
+                        Text("Mark")
+                            .padding(.trailing, 4)
+                        ForEach(MarkStyle.allCases, id: \.self) { style in
+                            MarkChip(style: style, selected: preferences.markStyle == style) {
+                                withAnimation(Ink.spring) { preferences.markStyle = style }
+                            }
+                        }
+                    }
+                    .padding(.top, 4)
                 }
                 .toggleStyle(Check())
             }
 
             HStack(spacing: 16) {
-                Text("Tuck \(version)")
+                Text("Duck \(version)")
                     .monospacedDigit()
-                Link("GitHub", destination: URL(string: "https://github.com/hellodigitworks/Tuck")!)
+                Link("GitHub", destination: URL(string: "https://github.com/hellodigitworks/Duck")!)
                     .focusable(false)
                 if let newer = updates.newer {
-                    Link("Tuck \(newer.version) is out. Download", destination: newer.url)
+                    Link("Duck \(newer.version) is out. Download", destination: newer.url)
                         .font(Type.medium(12))
                         .foregroundStyle(Ink.text)
                         .underline()
                         .focusable(false)
                 }
                 Spacer()
-                Button("Quit Tuck") { NSApp.terminate(nil) }
+                Button("Quit Duck") { NSApp.terminate(nil) }
                     .buttonStyle(Outline())
                     .focusable(false)
             }
@@ -134,11 +146,12 @@ struct PreferencesView: View {
 
 // MARK: - The demo
 
-/// A small menu bar that plays what Tuck does: the icons left of the mark slide away and
+/// A small menu bar that plays what Duck does: the icons left of the mark slide away and
 /// the ✕ turns into a plus, then they come back. Stands still when Reduce Motion is on.
 struct MenuBarDemo: View {
+    let style: MarkStyle
     @StateObject private var state = Flag()
-    private var tucked: Bool { state.on }
+    private var ducked: Bool { state.on }
     private let hiding = ["wifi", "cloud.fill", "bell.fill", "moon.fill"]
     private let staying = ["battery.100", "clock"]
     private let still = NSWorkspace.shared.accessibilityDisplayShouldReduceMotion
@@ -148,12 +161,14 @@ struct MenuBarDemo: View {
             HStack(spacing: 0) {
                 Spacer(minLength: 0)
                 icons(hiding)
-                    .offset(x: tucked ? -150 : 0)
-                    .opacity(tucked ? 0 : 1)
+                    .offset(x: ducked ? -150 : 0)
+                    .opacity(ducked ? 0 : 1)
                     .padding(.trailing, 20)
-                MarkGlyph(crossed: !tucked)
-                    .frame(width: 16, height: 16)
+                Image(nsImage: Mark.image(style: style, fraction: ducked ? 0 : 1))
+                    .renderingMode(.template)
                     .foregroundStyle(Ink.accent)
+                    .id("\(style.rawValue)-\(ducked)")
+                    .transition(.opacity)
                 icons(staying)
                     .padding(.leading, 20)
             }
@@ -163,11 +178,11 @@ struct MenuBarDemo: View {
             .clipShape(RoundedRectangle(cornerRadius: 12, style: .continuous))
             .overlay(RoundedRectangle(cornerRadius: 12, style: .continuous).stroke(Ink.line, lineWidth: 1))
 
-            Text(tucked ? "Hidden. Click + and they are back." : "Showing. Click ✕ and they tuck away.")
+            Text(ducked ? "Hidden. Click + and they are back." : "Showing. Click ✕ and they duck out.")
                 .font(Type.sans(12))
                 .foregroundStyle(Ink.muted)
                 .contentTransition(.opacity)
-                .animation(.easeInOut(duration: 0.3), value: tucked)
+                .animation(.easeInOut(duration: 0.3), value: ducked)
         }
         .task { await play() }
     }
@@ -192,16 +207,42 @@ struct MenuBarDemo: View {
     }
 }
 
-/// The same mark Tuck shows in the menu bar: a plus that rotates into an ✕.
-struct MarkGlyph: View {
-    var crossed: Bool
+/// A chip for one look of the mark: its hidden shape, then its showing shape. Ink-filled
+/// when it is the one in use.
+struct MarkChip: View {
+    let style: MarkStyle
+    let selected: Bool
+    let action: () -> Void
+    @StateObject private var hover = Flag()
+    private var hovering: Bool { hover.on }
 
     var body: some View {
-        ZStack {
-            Capsule().frame(width: 13.2, height: 1.7)
-            Capsule().frame(width: 1.7, height: 13.2)
+        Button(action: action) {
+            HStack(spacing: 4) {
+                glyph(0)
+                glyph(1)
+            }
+            .padding(.horizontal, 9)
+            .padding(.vertical, 5)
+            .background(Capsule().fill(selected ? Ink.text : Color.clear))
+            .overlay(Capsule().stroke(selected ? Ink.text : (hovering ? Ink.text : Ink.edge), lineWidth: 1))
+            .contentShape(Capsule())
+            .scaleEffect(hovering && !selected ? 1.04 : 1)
         }
-        .rotationEffect(.degrees(crossed ? 45 : 0))
+        .buttonStyle(.plain)
+        .focusable(false)
+        .help(style.name)
+        .onHover { hover.on = $0 }
+        .animation(Ink.spring, value: selected)
+        .animation(Ink.spring, value: hovering)
+    }
+
+    private func glyph(_ fraction: CGFloat) -> some View {
+        Image(nsImage: Mark.image(style: style, fraction: fraction))
+            .renderingMode(.template)
+            .resizable()
+            .frame(width: 14, height: 14)
+            .foregroundStyle(selected ? Ink.paper : Ink.text)
     }
 }
 
@@ -341,7 +382,7 @@ final class LoginItemModel: ObservableObject {
         message = LoginItem.setEnabled(wanted)
         isEnabled = LoginItem.isEnabled
         if wanted, message == nil, LoginItem.needsApproval {
-            message = "Approve Tuck in System Settings → General → Login Items & Extensions."
+            message = "Approve Duck in System Settings → General → Login Items & Extensions."
         }
     }
 }

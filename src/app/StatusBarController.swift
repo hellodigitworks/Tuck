@@ -1,7 +1,7 @@
 import AppKit
 import Combine
 import QuartzCore
-import TuckCore
+import DuckCore
 
 /// Owns the menu bar mark and the hiding logic.
 ///
@@ -10,7 +10,7 @@ import TuckCore
 /// everything to its right stays.
 ///
 /// How hiding works: macOS lays out menu bar icons from the right, and an icon that does
-/// not fit drops off the left end. Tuck keeps a few empty items just left of the mark and
+/// not fit drops off the left end. Duck keeps a few empty items just left of the mark and
 /// widens them until the bar is full, which takes every icon past them out of view.
 /// Narrow them again and the icons come straight back. Nothing is removed.
 ///
@@ -24,19 +24,19 @@ import TuckCore
 ///   width is shared across several items rather than piled onto one.
 /// - **An empty status item is 16pt wide, not nothing.** A width constraint on its content
 ///   view holds it open. Dropping that constraint and setting the window's size by hand
-///   takes it down to a single point, which is why Tuck leaves no gap in the bar. The trick
+///   takes it down to a single point, which is why Duck leaves no gap in the bar. The trick
 ///   comes from Ice, and Ice's own note is that a future macOS could take it away: if the
 ///   constraint is not found, the items simply rest at 16pt as they used to.
 final class StatusBarController: NSObject, NSMenuDelegate {
     private let preferences: Preferences
     private let updates: UpdateCheck
 
-    /// Every item Tuck owns, in creation order. Position decides which is the mark.
+    /// Every item Duck owns, in creation order. Position decides which is the mark.
     private let items: [NSStatusItem]
     /// The width constraint macOS puts on each item, kept so it can be switched off.
     private var widthHolders: [ObjectIdentifier: NSLayoutConstraint] = [:]
 
-    /// The item the user sees and clicks. Always the rightmost of Tuck's items.
+    /// The item the user sees and clicks. Always the rightmost of Duck's items.
     private var mark: NSStatusItem
     /// The invisible ones that do the pushing.
     private var spacers: [NSStatusItem]
@@ -68,10 +68,10 @@ final class StatusBarController: NSObject, NSMenuDelegate {
         // Creation order: each new item lands to the left of the previous one, so the
         // first one made is the one the user ends up clicking.
         let first = NSStatusBar.system.statusItem(withLength: NSStatusItem.variableLength)
-        first.autosaveName = "tuck.toggle"
+        first.autosaveName = "duck.toggle"
         let rest = (0..<StatusBarController.spacerCount(for: NSScreen.screens)).map { index -> NSStatusItem in
             let spacer = NSStatusBar.system.statusItem(withLength: 0)
-            spacer.autosaveName = "tuck.spacer\(index)"
+            spacer.autosaveName = "duck.spacer\(index)"
             return spacer
         }
         items = [first] + rest
@@ -157,7 +157,7 @@ final class StatusBarController: NSObject, NSMenuDelegate {
 
     // MARK: - Roles
 
-    /// The rightmost of Tuck's items is the mark; the rest push. macOS and the user both
+    /// The rightmost of Duck's items is the mark; the rest push. macOS and the user both
     /// move these around, so the roles are read back from where they actually are.
     @discardableResult
     private func assignRoles() -> Bool {
@@ -309,7 +309,7 @@ final class StatusBarController: NSObject, NSMenuDelegate {
     private func setMark(to target: CGFloat) {
         markAnimation?.invalidate()
         markAnimation = nil
-        mark.button?.image = Mark.image(fraction: markFraction)
+        mark.button?.image = Mark.image(style: preferences.markStyle, fraction:markFraction)
         guard abs(target - markFraction) > 0.001 else { return }
 
         let start = markFraction
@@ -326,7 +326,7 @@ final class StatusBarController: NSObject, NSMenuDelegate {
                 ? 2 * progress * progress
                 : 1 - pow(-2 * progress + 2, 2) / 2
             self.markFraction = start + (target - start) * CGFloat(eased)
-            self.mark.button?.image = Mark.image(fraction: self.markFraction)
+            self.mark.button?.image = Mark.image(style: preferences.markStyle, fraction:self.markFraction)
             if progress >= 1 {
                 timer.invalidate()
                 self.markAnimation = nil
@@ -368,6 +368,16 @@ final class StatusBarController: NSObject, NSMenuDelegate {
             .dropFirst()
             .receive(on: DispatchQueue.main)
             .sink { [weak self] _ in self?.scheduleAutoHideIfNeeded() }
+            .store(in: &cancellables)
+
+        // A new look for the mark shows up in the bar the moment it is picked.
+        preferences.$markStyle
+            .dropFirst()
+            .receive(on: DispatchQueue.main)
+            .sink { [weak self] style in
+                guard let self else { return }
+                self.mark.button?.image = Mark.image(style: style, fraction: self.markFraction)
+            }
             .store(in: &cancellables)
     }
 
@@ -513,7 +523,7 @@ final class StatusBarController: NSObject, NSMenuDelegate {
         let version = Bundle.main.infoDictionary?["CFBundleShortVersionString"] as? String ?? "?"
         let screens = NSScreen.screens.map { "\(Int($0.frame.origin.x)),\(Int($0.frame.origin.y)) \(Int($0.frame.width))×\(Int($0.frame.height))\($0 == NSScreen.main ? " main" : "")" }
         return """
-        Tuck \(version) on macOS \(ProcessInfo.processInfo.operatingSystemVersionString)
+        Duck \(version) on macOS \(ProcessInfo.processInfo.operatingSystemVersionString)
         Screens: \(screens.joined(separator: "; "))
         State: \(isCollapsed ? "hidden" : "showing"), ceiling \(Int(widthCeiling))pt, remembered \(Int(preferences.hidingWidth))pt for a \(Int(preferences.hidingBarWidth))pt bar
         Items: \(layoutDescription())
@@ -553,7 +563,11 @@ final class StatusBarController: NSObject, NSMenuDelegate {
         prefs.target = self
         menu.addItem(prefs)
 
-        let report = NSMenuItem(title: "Copy Diagnostics", action: #selector(menuCopyDiagnostics), keyEquivalent: "")
+        // Behind the Option key: hold ⌥ while the menu is open and Preferences becomes
+        // Copy Diagnostics. Still one paste away for a bug report, never in the way.
+        let report = NSMenuItem(title: "Copy Diagnostics", action: #selector(menuCopyDiagnostics), keyEquivalent: ",")
+        report.keyEquivalentModifierMask = [.command, .option]
+        report.isAlternate = true
         report.target = self
         menu.addItem(report)
 
@@ -565,7 +579,7 @@ final class StatusBarController: NSObject, NSMenuDelegate {
         menu.addItem(update)
 
         menu.addItem(.separator())
-        menu.addItem(NSMenuItem(title: "Quit Tuck", action: #selector(NSApplication.terminate(_:)), keyEquivalent: "q"))
+        menu.addItem(NSMenuItem(title: "Quit Duck", action: #selector(NSApplication.terminate(_:)), keyEquivalent: "q"))
         return menu
     }
 
@@ -574,7 +588,7 @@ final class StatusBarController: NSObject, NSMenuDelegate {
         menu.item(withTag: MenuTag.autoHide.rawValue)?.state = preferences.autoHide ? .on : .off
         if let item = menu.item(withTag: MenuTag.update.rawValue) {
             item.isHidden = updates.newer == nil
-            item.title = updates.newer.map { "Download Tuck \($0.version)…" } ?? ""
+            item.title = updates.newer.map { "Download Duck \($0.version)…" } ?? ""
         }
     }
 

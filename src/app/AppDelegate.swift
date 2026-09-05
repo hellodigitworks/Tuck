@@ -1,8 +1,8 @@
 import AppKit
-import TuckCore
+import DuckCore
 
 final class AppDelegate: NSObject, NSApplicationDelegate {
-    static let toggleNotification = Notification.Name("com.hdw.tuck.toggle")
+    static let toggleNotification = Notification.Name("com.hdw.duck.toggle")
 
     private let preferences = Preferences.shared
     private var statusBar: StatusBarController?
@@ -27,7 +27,7 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
         }
     }
 
-    /// Opening Tuck again while it is running brings up the preferences window.
+    /// Opening Duck again while it is running brings up the preferences window.
     func applicationShouldHandleReopen(_ sender: NSApplication, hasVisibleWindows flag: Bool) -> Bool {
         showPreferences(nil)
         return true

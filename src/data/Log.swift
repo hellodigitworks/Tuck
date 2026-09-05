@@ -1,19 +1,19 @@
 import Foundation
 import os
 
-/// Tuck's own log: a plain text file, because the unified log has not been reliable for
-/// this app and a person can send a text file. Lives at ~/Library/Logs/Tuck.log, capped
+/// Duck's own log: a plain text file, because the unified log has not been reliable for
+/// this app and a person can send a text file. Lives at ~/Library/Logs/Duck.log, capped
 /// so it never grows past a few hundred KB. Every line also goes to the unified log.
 public enum Log {
     public static let url: URL = {
         let logs = FileManager.default.homeDirectoryForCurrentUser
             .appendingPathComponent("Library/Logs", isDirectory: true)
         try? FileManager.default.createDirectory(at: logs, withIntermediateDirectories: true)
-        return logs.appendingPathComponent("Tuck.log")
+        return logs.appendingPathComponent("Duck.log")
     }()
 
-    private static let system = Logger(subsystem: "com.hdw.tuck", category: "app")
-    private static let queue = DispatchQueue(label: "com.hdw.tuck.log")
+    private static let system = Logger(subsystem: "com.hdw.duck", category: "app")
+    private static let queue = DispatchQueue(label: "com.hdw.duck.log")
     private static let stamp: DateFormatter = {
         let formatter = DateFormatter()
         formatter.dateFormat = "HH:mm:ss.SSS"

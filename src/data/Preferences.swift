@@ -1,6 +1,23 @@
 import Combine
 import Foundation
 
+/// The five looks the mark can have. Each is a pair: one shape while the icons are hidden,
+/// another while they are showing.
+public enum MarkStyle: String, CaseIterable {
+    case plus, chevron, dot, line, corner
+
+    /// What the Preferences window calls it.
+    public var name: String {
+        switch self {
+        case .plus: return "Plus"
+        case .chevron: return "Chevron"
+        case .dot: return "Dot"
+        case .line: return "Line"
+        case .corner: return "Corner"
+        }
+    }
+}
+
 /// Everything the user can change. Backed by UserDefaults, so it survives relaunches.
 public final class Preferences: ObservableObject {
     public static let shared = Preferences()
@@ -11,6 +28,7 @@ public final class Preferences: ObservableObject {
         public static let hasHiddenBefore = "hasHiddenBefore"
         public static let hidingWidth = "hidingWidth"
         public static let hidingBarWidth = "hidingBarWidth"
+        public static let markStyle = "markStyle"
     }
 
     /// The delays offered for hiding icons again, in seconds.
@@ -27,7 +45,7 @@ public final class Preferences: ObservableObject {
         didSet { defaults.set(autoHideSeconds, forKey: Key.autoHideSeconds) }
     }
 
-    /// False until the user hides icons for the first time. On a fresh install Tuck stays
+    /// False until the user hides icons for the first time. On a fresh install Duck stays
     /// open, and shows its window, until the user has seen where the mark is.
     @Published public var hasHiddenBefore: Bool {
         didSet { defaults.set(hasHiddenBefore, forKey: Key.hasHiddenBefore) }
@@ -43,12 +61,18 @@ public final class Preferences: ObservableObject {
         didSet { defaults.set(hidingBarWidth, forKey: Key.hidingBarWidth) }
     }
 
+    /// Which look the mark has. Plus unless the person picked another.
+    @Published public var markStyle: MarkStyle {
+        didSet { defaults.set(markStyle.rawValue, forKey: Key.markStyle) }
+    }
+
     public init(defaults: UserDefaults = .standard) {
         self.defaults = defaults
         defaults.register(defaults: [
             Key.autoHide: true,
             Key.autoHideSeconds: Preferences.defaultAutoHideSeconds,
             Key.hasHiddenBefore: false,
+            Key.markStyle: MarkStyle.plus.rawValue,
         ])
 
         autoHide = defaults.bool(forKey: Key.autoHide)
@@ -59,5 +83,6 @@ public final class Preferences: ObservableObject {
         hasHiddenBefore = defaults.bool(forKey: Key.hasHiddenBefore)
         hidingWidth = defaults.double(forKey: Key.hidingWidth)
         hidingBarWidth = defaults.double(forKey: Key.hidingBarWidth)
+        markStyle = MarkStyle(rawValue: defaults.string(forKey: Key.markStyle) ?? "") ?? .plus
     }
 }

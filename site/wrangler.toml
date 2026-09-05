@@ -1,9 +1,11 @@
-# Tuck's landing page: its own Cloudflare Pages project.
+# Duck's landing page: its own Cloudflare Pages project.
 #
+# The project kept its first name, tuck, when the app became Duck. Only the address
+# changed: duck.hellodigitworks.com is attached to it, and the old tuck address redirects.
 # Deploying from this folder:
 #   npx wrangler pages deploy . --project-name tuck --branch main
 #
-# Attach tuck.hellodigitworks.com to the project once, in the Cloudflare dashboard under
+# Attach an address to the project once, in the Cloudflare dashboard under
 # Pages > tuck > Custom domains. Nothing here does that for you.
 
 name = "tuck"

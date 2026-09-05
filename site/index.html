@@ -3,37 +3,44 @@
 <head>
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
-  <title>Tuck</title>
-  <meta name="description" content="Tuck hides the menu bar icons you are not using right now. One click and they are out of sight, one more and they are back. A small, free Mac app." />
-  <link rel="canonical" href="https://tuck.hellodigitworks.com/" />
+  <title>Duck</title>
+  <!-- The old address, from when the app was called Tuck, still points at this same
+       page. Anyone arriving there is sent on to the new one. -->
+  <script>
+    if (location.hostname === 'tuck.hellodigitworks.com') {
+      location.replace('https://duck.hellodigitworks.com' + location.pathname + location.search);
+    }
+  </script>
+  <meta name="description" content="Duck hides the menu bar icons you are not using right now. One click and they are out of sight, one more and they are back. A small, free Mac app." />
+  <link rel="canonical" href="https://duck.hellodigitworks.com/" />
   <meta name="theme-color" content="#F4EFE6" />
   <meta name="color-scheme" content="light" />
 
   <meta property="og:type" content="website" />
-  <meta property="og:site_name" content="Tuck" />
-  <meta property="og:title" content="Tuck" />
+  <meta property="og:site_name" content="Duck" />
+  <meta property="og:title" content="Duck" />
   <meta property="og:description" content="Hides the menu bar icons you are not using right now. A small, free Mac app." />
-  <meta property="og:url" content="https://tuck.hellodigitworks.com/" />
-  <meta property="og:image" content="https://tuck.hellodigitworks.com/images/og.png?v=1" />
+  <meta property="og:url" content="https://duck.hellodigitworks.com/" />
+  <meta property="og:image" content="https://duck.hellodigitworks.com/images/og.png?v=2" />
   <meta property="og:image:width" content="1200" />
   <meta property="og:image:height" content="630" />
   <meta name="twitter:card" content="summary_large_image" />
-  <meta name="twitter:title" content="Tuck" />
+  <meta name="twitter:title" content="Duck" />
   <meta name="twitter:description" content="Hides the menu bar icons you are not using right now. A small, free Mac app." />
-  <meta name="twitter:image" content="https://tuck.hellodigitworks.com/images/og.png?v=1" />
+  <meta name="twitter:image" content="https://duck.hellodigitworks.com/images/og.png?v=2" />
 
-  <link rel="icon" href="images/favicon.svg?v=1" type="image/svg+xml" />
-  <link rel="icon" href="images/favicon-32.png?v=1" sizes="32x32" type="image/png" />
-  <link rel="apple-touch-icon" href="images/apple-touch-icon.png?v=1" />
-  <link rel="manifest" href="site.webmanifest?v=1" />
+  <link rel="icon" href="images/favicon.svg?v=2" type="image/svg+xml" />
+  <link rel="icon" href="images/favicon-32.png?v=2" sizes="32x32" type="image/png" />
+  <link rel="apple-touch-icon" href="images/apple-touch-icon.png?v=2" />
+  <link rel="manifest" href="site.webmanifest?v=2" />
 
   <link rel="preload" href="fonts/fraunces.woff2" as="font" type="font/woff2" crossorigin />
   <link rel="preload" href="fonts/inter.woff2" as="font" type="font/woff2" crossorigin />
-  <link rel="stylesheet" href="css/tuck.css?v=3" />
+  <link rel="stylesheet" href="css/duck.css?v=1" />
 </head>
 <body>
 
-  <!-- One screen. The headline, the menu bar playing what Tuck does, the way in.
+  <!-- One screen. The headline, the menu bar playing what Duck does, the way in.
        Everything else is on GitHub. -->
   <main class="screen">
     <h1 class="reveal" style="--i:0">A quieter<br />menu bar.</h1>
@@ -41,7 +48,7 @@
     <!-- CSS only: the four dimmed icons on the left slide behind the mark and come
          back, the mark turns from an ✕ to a plus and back. The mark keeps its orange;
          everything else in the bar is faded so the eye lands on it. -->
-    <div class="demo reveal" style="--i:1" aria-label="The icons to the left of Tuck's mark slide away and come back">
+    <div class="demo reveal" style="--i:1" aria-label="The icons to the left of Duck's mark slide away and come back">
       <div class="bar">
         <div class="bar-left" aria-hidden="true">
           <span class="dot"></span><span class="dot"></span><span class="dot"></span>
@@ -69,8 +76,8 @@
          next. Files that arrive through curl carry no download tag, so macOS never shows
          the "could not verify" warning an unsigned app gets. -->
     <button class="button reveal" style="--i:2" type="button" id="install"
-      data-line="curl -fsSL https://tuck.hellodigitworks.com/install.sh | sh">Install for Mac</button>
-    <code class="line" id="line" hidden>curl -fsSL https://tuck.hellodigitworks.com/install.sh | sh</code>
+      data-line="curl -fsSL https://duck.hellodigitworks.com/install.sh | sh">Install for Mac</button>
+    <code class="line" id="line" hidden>curl -fsSL https://duck.hellodigitworks.com/install.sh | sh</code>
   </main>
 
   <script>

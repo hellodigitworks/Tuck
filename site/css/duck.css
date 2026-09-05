@@ -1,4 +1,4 @@
-/* Tuck — one screen.
+/* Duck — one screen.
    Cream paper, ink text, one orange. Fraunces for the headline, Inter for the button.
    Everything else is space. */
 
@@ -102,13 +102,13 @@ h1 {
 }
 /* Everything but the mark is faded, so the eye lands on the mark. */
 .hides, .stays, .clock { color: var(--ink); opacity: 0.32; }
-.hides { animation: tuck 6s var(--ease) infinite; }
+.hides { animation: duck 6s var(--ease) infinite; }
 .mark { color: var(--orange); display: inline-flex; animation: turn 6s var(--ease) infinite; }
 .mark svg { stroke-width: 2.4; }
 .clock { font-size: 15px; font-variant-numeric: tabular-nums; margin-left: 4px; }
 
 /* Showing for the first half, a quick slide out, hidden for a while, then a quick slide back. */
-@keyframes tuck {
+@keyframes duck {
   0%, 40%   { transform: translateX(0); opacity: 0.32; }
   47%, 88%  { transform: translateX(-140px); opacity: 0; }
   95%, 100% { transform: translateX(0); opacity: 0.32; }

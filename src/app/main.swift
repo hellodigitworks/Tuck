@@ -1,7 +1,7 @@
 import AppKit
-import TuckCore
+import DuckCore
 
-// `Tuck --toggle` from a script, Raycast or Shortcuts flips the menu bar without a click.
+// `Duck --toggle` from a script, Raycast or Shortcuts flips the menu bar without a click.
 if CommandLine.arguments.contains("--toggle") {
     DistributedNotificationCenter.default().postNotificationName(
         AppDelegate.toggleNotification, object: nil, userInfo: nil, deliverImmediately: true)

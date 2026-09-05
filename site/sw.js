@@ -1,16 +1,16 @@
-// Tuck's service worker. Keeps the page and its files so it opens with no signal.
+// Duck's service worker. Keeps the page and its files so it opens with no signal.
 // Bump CACHE whenever any file below changes, or people keep seeing the old page.
-const CACHE = 'tuck-v4';
+const CACHE = 'duck-v1';
 const FILES = [
   '/',
   '/index.html',
-  '/css/tuck.css?v=3',
+  '/css/duck.css?v=1',
   '/fonts/fraunces.woff2',
   '/fonts/inter.woff2',
-  '/images/favicon.svg?v=1',
-  '/images/icon-192.png?v=1',
-  '/images/icon-512.png?v=1',
-  '/site.webmanifest?v=1',
+  '/images/favicon.svg?v=2',
+  '/images/icon-192.png?v=2',
+  '/images/icon-512.png?v=2',
+  '/site.webmanifest?v=2',
 ];
 
 self.addEventListener('install', (event) => {
