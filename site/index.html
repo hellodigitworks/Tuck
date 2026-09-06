@@ -79,13 +79,13 @@
       data-line="curl -fsSL https://duck.hellodigitworks.com/install.sh | sh">Install for Mac</button>
     <code class="line" id="line" hidden>curl -fsSL https://duck.hellodigitworks.com/install.sh | sh</code>
 
-    <!-- Once the line is copied, how the install goes: Terminal, paste, Return, the mark
+    <!-- Once the line is copied, how the install goes: the page, the copy, Spotlight, Terminal, the line, Enter, the mark
          in the bar. Drawn, silent, loops. No controls, no picture in picture, no saving. -->
     <video class="how" id="how" hidden muted loop playsinline preload="none"
-      poster="media/install.jpg?v=1" disablepictureinpicture controlslist="nodownload noplaybackrate noremoteplayback"
+      poster="media/install.jpg?v=2" disablepictureinpicture controlslist="nodownload noplaybackrate noremoteplayback"
       oncontextmenu="return false"
-      aria-label="Open Terminal, paste the line, press Return. Duck's mark appears in the menu bar.">
-      <source src="media/install.mp4?v=1" type="video/mp4" />
+      aria-label="How Duck installs: the page, the copy, Spotlight, Terminal, the line pasted, Enter, Duck's mark in the menu bar, then hiding icons and bringing them back.">
+      <source src="media/install.mp4?v=2" type="video/mp4" />
     </video>
   </main>
 
@@ -110,7 +110,7 @@
     };
     install.addEventListener('click', function () {
       var copied = function () {
-        install.textContent = 'Copied. Open Terminal, paste, press Return.';
+        install.textContent = 'Copied. Open Terminal, paste, press Enter.';
         install.classList.add('done');
         show();
       };
