@@ -9,7 +9,7 @@ final class PreferencesWindowController: NSWindowController {
 
     private init() {
         let window = NSWindow(
-            contentRect: NSRect(x: 0, y: 0, width: 500, height: 620),
+            contentRect: NSRect(x: 0, y: 0, width: 380, height: 440),
             styleMask: [.titled, .closable, .miniaturizable, .resizable, .fullSizeContentView],
             backing: .buffered,
             defer: false)
@@ -20,12 +20,12 @@ final class PreferencesWindowController: NSWindowController {
         window.backgroundColor = NSColor(red: 0.957, green: 0.937, blue: 0.902, alpha: 1)
         window.isMovableByWindowBackground = true
         window.isReleasedWhenClosed = false
-        // Small enough for a laptop, never so small that a line has to break twice.
-        window.contentMinSize = NSSize(width: 440, height: 600)
+        // Small: the rows and the foot, nothing else.
+        window.contentMinSize = NSSize(width: 360, height: 400)
         window.contentViewController = NSHostingController(
             rootView: PreferencesView(preferences: .shared, login: LoginItemModel(), updates: .shared))
-        window.setContentSize(NSSize(width: 500, height: 620))
-        window.setFrameAutosaveName("DuckPreferences")
+        window.setContentSize(NSSize(width: 380, height: 440))
+        window.setFrameAutosaveName("DuckPreferences2") // a new name, so the old, taller frame is not restored
         super.init(window: window)
     }
 
@@ -36,7 +36,7 @@ final class PreferencesWindowController: NSWindowController {
 
     func show() {
         guard let window else { return }
-        if !window.isVisible, !window.setFrameUsingName("DuckPreferences") {
+        if !window.isVisible, !window.setFrameUsingName("DuckPreferences2") {
             window.center()
         }
         NSApp.activate(ignoringOtherApps: true)

@@ -1,8 +1,8 @@
 import SwiftUI
 import DuckCore
 
-/// The look: cream paper, ink text, one orange. Exposure for the words that set the room,
-/// Inter for the rest. Soft cards, round corners, a spring on everything that moves.
+/// The look: cream paper, ink text. Exposure for the name, Inter for the rest. Rows a
+/// hairline apart, chips with soft corners, a spring on everything that moves.
 enum Ink {
     static let paper = Color(red: 0.957, green: 0.937, blue: 0.902)
     static let card = Color(red: 0.984, green: 0.973, blue: 0.953)
@@ -32,39 +32,19 @@ struct PreferencesView: View {
     }
 
     var body: some View {
-        VStack(alignment: .leading, spacing: 18) {
-            VStack(alignment: .leading, spacing: 4) {
-                Text("Duck")
-                    .font(Type.serif(42))
-                Text("Hide the menu bar icons you are not using right now.")
-                    .font(Type.sans(15))
-                    .foregroundStyle(Ink.muted)
-            }
-
-            Card {
-                MenuBarDemo(style: preferences.markStyle)
-            }
-
-            VStack(alignment: .leading, spacing: 6) {
-                Text("Hold ⌘ and drag an icon to the left of the mark. It hides with the rest.")
-                Text("Click ✕ to hide them. Click + to bring them back.")
-                Text("Right-click the mark for the menu.")
-                    .font(Type.sans(12))
-                    .foregroundStyle(Ink.muted)
-                    .padding(.top, 2)
-            }
-            .font(Type.sans(14))
-            .lineSpacing(2)
-            .fixedSize(horizontal: false, vertical: true)
-
-            Card {
-                VStack(alignment: .leading, spacing: 10) {
-                    Toggle("Start at login", isOn: launchBinding)
-                    if let message = login.message {
-                        note(message)
-                    }
-                    Toggle("Show in Dock", isOn: $preferences.showInDock)
-                    Toggle("Hide again automatically", isOn: $preferences.autoHide)
+        VStack(spacing: 0) {
+            // The rows. Each one a hairline apart, the way a ledger is set.
+            VStack(spacing: 0) {
+                row("Start at login") { Toggle(isOn: launchBinding) { EmptyView() } }
+                if let message = login.message {
+                    note(message)
+                }
+                rule
+                row("Show in Dock") { Toggle(isOn: $preferences.showInDock) { EmptyView() } }
+                rule
+                row("Hide again automatically") { Toggle(isOn: $preferences.autoHide) { EmptyView() } }
+                rule
+                stack("After") {
                     HStack(spacing: 6) {
                         ForEach(Preferences.autoHideChoices, id: \.self) { seconds in
                             Chip(label(for: seconds), selected: preferences.autoHideSeconds == seconds) {
@@ -72,58 +52,98 @@ struct PreferencesView: View {
                             }
                         }
                     }
-                    .padding(.leading, 30)
                     .opacity(preferences.autoHide ? 1 : 0.35)
                     .disabled(!preferences.autoHide)
                     .animation(Ink.spring, value: preferences.autoHide)
-
-                    // The mark's look: each chip shows its hidden shape and its showing shape.
+                }
+                rule
+                stack("Mark") {
                     HStack(spacing: 6) {
-                        Text("Mark")
-                            .padding(.trailing, 4)
                         ForEach(MarkStyle.allCases, id: \.self) { style in
                             MarkChip(style: style, selected: preferences.markStyle == style) {
                                 withAnimation(Ink.spring) { preferences.markStyle = style }
                             }
                         }
                     }
-                    .padding(.top, 4)
                 }
-                .toggleStyle(Check())
             }
+            .toggleStyle(Check())
+            .padding(.horizontal, 22)
+            .padding(.top, 34)
 
-            HStack(spacing: 16) {
-                Text("Duck \(version)")
-                    .monospacedDigit()
-                Link("GitHub", destination: URL(string: "https://github.com/hellodigitworks/Duck")!)
+            Spacer(minLength: 14)
+
+            // The foot: the duck, its name (the way to the site), its version. Quit.
+            rule
+            HStack(spacing: 9) {
+                if let duck = Self.duck {
+                    Image(nsImage: duck)
+                        .resizable()
+                        .aspectRatio(contentMode: .fit)
+                        .frame(width: 24, height: 22)
+                }
+                Link("Duck", destination: URL(string: "https://duck.hellodigitworks.com")!)
+                    .font(Type.serif(17))
+                    .foregroundStyle(Ink.text)
+                    .underline(true, color: Ink.edge)
                     .focusable(false)
+                Text(version)
+                    .font(Type.sans(12))
+                    .foregroundStyle(Ink.muted)
+                    .monospacedDigit()
                 if let newer = updates.newer {
-                    Link("Duck \(newer.version) is out. Download", destination: newer.url)
+                    Link("\(newer.version) is out", destination: newer.url)
                         .font(Type.medium(12))
                         .foregroundStyle(Ink.text)
                         .underline()
                         .focusable(false)
                 }
                 Spacer()
-                Button("Quit Duck") { NSApp.terminate(nil) }
-                    .buttonStyle(Outline())
+                Button("Quit") { NSApp.terminate(nil) }
+                    .buttonStyle(.plain)
+                    .font(Type.medium(12.5))
+                    .foregroundStyle(Ink.text)
                     .focusable(false)
             }
-            .font(Type.sans(12))
-            .foregroundStyle(Ink.muted)
+            .padding(.horizontal, 22)
+            .padding(.vertical, 13)
         }
-        .font(Type.sans(14))
+        .font(Type.sans(13))
         .foregroundStyle(Ink.text)
         .tint(Ink.text)
-        .padding(.top, 34)
-        .padding(.horizontal, 30)
-        .padding(.bottom, 24)
-        // One block, no wider than a comfortable line, sitting in the middle of whatever
-        // size the window is. Grow the window and the block just gets more room around it.
-        .frame(maxWidth: 620)
-        .frame(minWidth: 440, maxWidth: .infinity, minHeight: 600, maxHeight: .infinity, alignment: .center)
+        .frame(minWidth: 360, maxWidth: .infinity, minHeight: 400, maxHeight: .infinity, alignment: .top)
         .background(Ink.paper)
         .onAppear { login.refresh() }
+    }
+
+    /// The duck, from the bundle. Drawn by the same file the icon comes from.
+    private static let duck: NSImage? = {
+        guard let url = Bundle.main.url(forResource: "duck", withExtension: "svg") else { return nil }
+        return NSImage(contentsOf: url)
+    }()
+
+    private var rule: some View {
+        Rectangle().fill(Ink.line).frame(height: 1)
+    }
+
+    /// A label on the left, its control on the right.
+    private func row<Control: View>(_ label: String, @ViewBuilder control: () -> Control) -> some View {
+        HStack(spacing: 12) {
+            Text(label)
+            Spacer(minLength: 0)
+            control()
+        }
+        .padding(.vertical, 12)
+    }
+
+    /// A label, then its chips beneath it.
+    private func stack<Content: View>(_ label: String, @ViewBuilder content: () -> Content) -> some View {
+        VStack(alignment: .leading, spacing: 9) {
+            Text(label)
+            content()
+        }
+        .frame(maxWidth: .infinity, alignment: .leading)
+        .padding(.vertical, 12)
     }
 
     private var launchBinding: Binding<Bool> {
@@ -140,71 +160,8 @@ struct PreferencesView: View {
         Text(text)
             .font(Type.sans(12))
             .foregroundStyle(Ink.muted)
-            .padding(.leading, 30)
+            .padding(.bottom, 10)
             .fixedSize(horizontal: false, vertical: true)
-    }
-}
-
-// MARK: - The demo
-
-/// A small menu bar that plays what Duck does: the icons left of the mark slide away and
-/// the ✕ turns into a plus, then they come back. Stands still when Reduce Motion is on.
-struct MenuBarDemo: View {
-    let style: MarkStyle
-    @StateObject private var state = Flag()
-    private var ducked: Bool { state.on }
-    private let hiding = ["wifi", "cloud.fill", "bell.fill", "moon.fill"]
-    private let staying = ["battery.100", "clock"]
-    private let still = NSWorkspace.shared.accessibilityDisplayShouldReduceMotion
-
-    var body: some View {
-        VStack(alignment: .leading, spacing: 10) {
-            HStack(spacing: 0) {
-                Spacer(minLength: 0)
-                icons(hiding)
-                    .offset(x: ducked ? -150 : 0)
-                    .opacity(ducked ? 0 : 1)
-                    .padding(.trailing, 20)
-                Image(nsImage: Mark.image(style: style, fraction: ducked ? 0 : 1))
-                    .renderingMode(.template)
-                    .foregroundStyle(Ink.accent)
-                    .id("\(style.rawValue)-\(ducked)")
-                    .transition(.opacity)
-                icons(staying)
-                    .padding(.leading, 20)
-            }
-            .padding(.horizontal, 16)
-            .frame(height: 40)
-            .background(RoundedRectangle(cornerRadius: 12, style: .continuous).fill(Ink.paper))
-            .clipShape(RoundedRectangle(cornerRadius: 12, style: .continuous))
-            .overlay(RoundedRectangle(cornerRadius: 12, style: .continuous).stroke(Ink.line, lineWidth: 1))
-
-            Text(ducked ? "Hidden. Click + and they are back." : "Showing. Click ✕ and they duck out.")
-                .font(Type.sans(12))
-                .foregroundStyle(Ink.muted)
-                .contentTransition(.opacity)
-                .animation(.easeInOut(duration: 0.3), value: ducked)
-        }
-        .task { await play() }
-    }
-
-    private func icons(_ names: [String]) -> some View {
-        HStack(spacing: 18) {
-            ForEach(names, id: \.self) { name in
-                Image(systemName: name)
-                    .font(.system(size: 13))
-                    .foregroundStyle(Ink.text.opacity(0.32))
-            }
-        }
-    }
-
-    private func play() async {
-        guard !still else { return }
-        while !Task.isCancelled {
-            try? await Task.sleep(for: .seconds(2.2))
-            guard !Task.isCancelled else { return }
-            withAnimation(.spring(response: 0.55, dampingFraction: 0.8)) { state.on.toggle() }
-        }
     }
 }
 
@@ -223,11 +180,11 @@ struct MarkChip: View {
                 glyph(0)
                 glyph(1)
             }
-            .padding(.horizontal, 9)
-            .padding(.vertical, 5)
-            .background(Capsule().fill(selected ? Ink.text : Color.clear))
-            .overlay(Capsule().stroke(selected ? Ink.text : (hovering ? Ink.text : Ink.edge), lineWidth: 1))
-            .contentShape(Capsule())
+            .padding(.horizontal, 10)
+            .padding(.vertical, 6)
+            .background(RoundedRectangle(cornerRadius: 12, style: .continuous).fill(selected ? Ink.text : Ink.card))
+            .overlay(RoundedRectangle(cornerRadius: 12, style: .continuous).stroke(selected ? Ink.text : (hovering ? Ink.text : Ink.line), lineWidth: 1))
+            .contentShape(RoundedRectangle(cornerRadius: 12, style: .continuous))
             .scaleEffect(hovering && !selected ? 1.04 : 1)
         }
         .buttonStyle(.plain)
@@ -248,23 +205,6 @@ struct MarkChip: View {
 }
 
 // MARK: - Surfaces and controls
-
-/// A soft card: a shade lighter than the paper, a hairline, a shadow you feel more than see.
-struct Card<Content: View>: View {
-    @ViewBuilder var content: Content
-
-    var body: some View {
-        content
-            .padding(16)
-            .frame(maxWidth: .infinity, alignment: .leading)
-            .background(
-                RoundedRectangle(cornerRadius: 20, style: .continuous)
-                    .fill(Ink.card)
-                    .shadow(color: Ink.shadow, radius: 14, y: 6)
-            )
-            .overlay(RoundedRectangle(cornerRadius: 20, style: .continuous).stroke(Ink.line, lineWidth: 1))
-    }
-}
 
 /// A checkbox: an outlined square that fills with ink when it is on.
 struct Check: ToggleStyle {
@@ -294,7 +234,7 @@ struct Check: ToggleStyle {
     }
 }
 
-/// A round chip. Ink-filled when it is the one picked.
+/// A chip with the window's 12 point corners. Ink-filled when it is the one picked.
 struct Chip: View {
     let title: String
     let selected: Bool
@@ -313,12 +253,12 @@ struct Chip: View {
             Text(title)
                 .font(Type.medium(12))
                 .monospacedDigit()
-                .foregroundStyle(selected ? Ink.paper : Ink.muted)
-                .padding(.horizontal, 11)
-                .padding(.vertical, 5)
-                .background(Capsule().fill(selected ? Ink.text : Color.clear))
-                .overlay(Capsule().stroke(selected ? Ink.text : (hovering ? Ink.text : Ink.edge), lineWidth: 1))
-                .contentShape(Capsule())
+                .foregroundStyle(selected ? Ink.paper : Ink.text)
+                .padding(.horizontal, 13)
+                .padding(.vertical, 7)
+                .background(RoundedRectangle(cornerRadius: 12, style: .continuous).fill(selected ? Ink.text : Ink.card))
+                .overlay(RoundedRectangle(cornerRadius: 12, style: .continuous).stroke(selected ? Ink.text : (hovering ? Ink.text : Ink.line), lineWidth: 1))
+                .contentShape(RoundedRectangle(cornerRadius: 12, style: .continuous))
                 .scaleEffect(hovering && !selected ? 1.04 : 1)
         }
         .buttonStyle(.plain)
