@@ -29,6 +29,7 @@ public final class Preferences: ObservableObject {
         public static let hidingWidth = "hidingWidth"
         public static let hidingBarWidth = "hidingBarWidth"
         public static let markStyle = "markStyle"
+        public static let showInDock = "showInDock"
     }
 
     /// The delays offered for hiding icons again, in seconds.
@@ -66,6 +67,12 @@ public final class Preferences: ObservableObject {
         didSet { defaults.set(markStyle.rawValue, forKey: Key.markStyle) }
     }
 
+    /// Off, Duck lives in the menu bar and nowhere else. On, it is a normal app as well: an
+    /// icon in the Dock and a place in ⌘-Tab.
+    @Published public var showInDock: Bool {
+        didSet { defaults.set(showInDock, forKey: Key.showInDock) }
+    }
+
     public init(defaults: UserDefaults = .standard) {
         self.defaults = defaults
         defaults.register(defaults: [
@@ -73,6 +80,7 @@ public final class Preferences: ObservableObject {
             Key.autoHideSeconds: Preferences.defaultAutoHideSeconds,
             Key.hasHiddenBefore: false,
             Key.markStyle: MarkStyle.plus.rawValue,
+            Key.showInDock: false,
         ])
 
         autoHide = defaults.bool(forKey: Key.autoHide)
@@ -84,5 +92,6 @@ public final class Preferences: ObservableObject {
         hidingWidth = defaults.double(forKey: Key.hidingWidth)
         hidingBarWidth = defaults.double(forKey: Key.hidingBarWidth)
         markStyle = MarkStyle(rawValue: defaults.string(forKey: Key.markStyle) ?? "") ?? .plus
+        showInDock = defaults.bool(forKey: Key.showInDock)
     }
 }

@@ -80,6 +80,9 @@ Duck's mark appears in the menu bar, and the first time its window comes with it
 **Start at login.** A checkbox in Preferences. Move the app to `/Applications` first so
 macOS can always find it.
 
+**Show in Dock.** Off by default: Duck lives in the menu bar and nowhere else. Tick it and
+Duck also gets an icon in the Dock and a place in ⌘-Tab, the moment you tick it.
+
 **Updates.** Duck asks GitHub once every few hours whether a newer release exists. If one
 does, the window and the right-click menu say so with a link. It never downloads anything
 on its own.

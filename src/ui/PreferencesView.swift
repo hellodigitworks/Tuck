@@ -63,6 +63,7 @@ struct PreferencesView: View {
                     if let message = login.message {
                         note(message)
                     }
+                    Toggle("Show in Dock", isOn: $preferences.showInDock)
                     Toggle("Hide again automatically", isOn: $preferences.autoHide)
                     HStack(spacing: 6) {
                         ForEach(Preferences.autoHideChoices, id: \.self) { seconds in

@@ -1,4 +1,5 @@
 import AppKit
+import Combine
 import DuckCore
 
 final class AppDelegate: NSObject, NSApplicationDelegate {
@@ -6,9 +7,12 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
 
     private let preferences = Preferences.shared
     private var statusBar: StatusBarController?
+    private var cancellables = Set<AnyCancellable>()
 
     func applicationDidFinishLaunching(_ notification: Notification) {
         NSApp.mainMenu = MainMenu.build()
+        showInDock(preferences.showInDock)
+        observePreferences()
 
         let statusBar = StatusBarController(preferences: preferences, updates: .shared)
         statusBar.openPreferences = { [weak self] in self?.showPreferences(nil) }
@@ -39,5 +43,27 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
 
     @objc private func handleToggleNotification() {
         statusBar?.toggle()
+    }
+
+    /// A normal app while the switch is on: an icon in the Dock and a place in ⌘-Tab. Menu
+    /// bar only while it is off. main.swift starts it off; this applies what was saved.
+    private func showInDock(_ show: Bool) {
+        NSApp.setActivationPolicy(show ? .regular : .accessory)
+    }
+
+    private func observePreferences() {
+        // The switch takes effect the moment it is flipped, no relaunch. Turned on while
+        // running, macOS draws the Dock icon but leaves the app's own menu bar asleep until
+        // the app comes forward, so it is brought forward once. Turned off, the switch to
+        // accessory drops the app to the back, and coming forward again keeps the window
+        // the person is using where it was.
+        preferences.$showInDock
+            .dropFirst()
+            .receive(on: DispatchQueue.main)
+            .sink { [weak self] show in
+                self?.showInDock(show)
+                NSApp.activate(ignoringOtherApps: true)
+            }
+            .store(in: &cancellables)
     }
 }
