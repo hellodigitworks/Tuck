@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""Builds the fonts Duck ships, from the two open-licence variable fonts.
+"""Builds Inter, the open-licence face Duck ships, from its variable source.
 
 Run: python3 scripts/make-fonts.py   (needs: pip3 install fonttools brotli)
 
@@ -9,8 +9,10 @@ What is committed is what this writes:
   fonts/           static TrueType instances the app bundles, Latin only
   site/fonts/      woff2 for the landing page, Latin only, weight kept variable where useful
 
-Fraunces (undercasetype) and Inter (rsms) are both SIL Open Font Licence, which allows
-exactly this: bundling, subsetting and redistribution, with the licence text alongside.
+Inter (rsms) is SIL Open Font Licence, which allows exactly this: bundling, subsetting
+and redistribution, with the licence text alongside. Duck's serif, Exposure (205TF), is a
+licensed face and is not built here: fonts/ExposureTrial-30.otf and
+site/fonts/exposure-30.otf are copied in as they come from the foundry.
 """
 import pathlib
 import urllib.request
@@ -28,9 +30,7 @@ WEB.mkdir(parents=True, exist_ok=True)
 
 BASE = "https://github.com/google/fonts/raw/main/ofl"
 SOURCES = {
-    "Fraunces.ttf": f"{BASE}/fraunces/Fraunces%5BSOFT%2CWONK%2Copsz%2Cwght%5D.ttf",
     "Inter.ttf": f"{BASE}/inter/Inter%5Bopsz%2Cwght%5D.ttf",
-    "OFL-Fraunces.txt": f"{BASE}/fraunces/OFL.txt",
     "OFL-Inter.txt": f"{BASE}/inter/OFL.txt",
 }
 
@@ -84,20 +84,14 @@ def build(source, axes, family, style, postscript, out, flavor=None):
 
 fetch()
 
-# The app: one static file per face. Fraunces sits at optical size 48, a little softer
-# than default and without the wonky glyphs. Inter at text size, regular and medium.
-build("Fraunces.ttf", {"wght": 400, "opsz": 48, "SOFT": 50, "WONK": 0},
-      "Fraunces", "Regular", "Fraunces-Regular", APP / "Fraunces-Regular.ttf")
+# The app: one static file per weight. Inter at text size, regular and medium.
 build("Inter.ttf", {"wght": 400, "opsz": 14}, "Inter", "Regular", "Inter-Regular", APP / "Inter-Regular.ttf")
 build("Inter.ttf", {"wght": 500, "opsz": 14}, "Inter", "Medium", "Inter-Medium", APP / "Inter-Medium.ttf")
 
-# The page: Fraunces keeps its optical size axis so headlines get the high-contrast cut,
-# Inter keeps a weight range so one file covers body and labels.
-build("Fraunces.ttf", {"wght": 400, "SOFT": 50, "WONK": 0},
-      "Fraunces", "Regular", "Fraunces-Regular", WEB / "fraunces.woff2", flavor="woff2")
+# The page: Inter keeps a weight range so one file covers body and labels.
 build("Inter.ttf", {"wght": (400, 700), "opsz": 14}, "Inter", "Regular", "Inter-Regular", WEB / "inter.woff2", flavor="woff2")
 
-for licence in ("OFL-Fraunces.txt", "OFL-Inter.txt"):
+for licence in ("OFL-Inter.txt",):
     (APP / licence).write_bytes((SOURCE / licence).read_bytes())
     (WEB / licence).write_bytes((SOURCE / licence).read_bytes())
-print("  licences copied")
+print("  licence copied")

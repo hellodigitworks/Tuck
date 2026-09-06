@@ -118,7 +118,7 @@ zsh scripts/make-images.sh
 ```
 
 Inter is built from its open-licence source by
-`scripts/make-fonts.py`: a small static file for the app, woff2 for the page. Exposure (205TF)
+`scripts/make-fonts.py`: small static files for the app, woff2 for the page. Exposure (205TF)
 is a licensed face and is copied in as it is: `fonts/ExposureTrial-30.otf` for the app,
 `site/fonts/exposure-30.otf` for the page. The file here is the trial; the licence is bought
 before a release ships it.
