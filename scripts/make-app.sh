@@ -27,10 +27,10 @@ if [ ! -f icons/AppIcon.icns ]; then
 fi
 cp icons/AppIcon.icns "$APP/Contents/Resources/AppIcon.icns"
 
-# The two faces the window uses. macOS registers everything in Resources/Fonts on its own
+# The two faces the window uses, Exposure and Inter. macOS registers everything in Resources/Fonts on its own
 # (ATSApplicationFontsPath below), so there is no font code in the app at all.
 mkdir -p "$APP/Contents/Resources/Fonts"
-cp fonts/*.ttf fonts/OFL-*.txt "$APP/Contents/Resources/Fonts/"
+cp fonts/ExposureTrial-30.otf fonts/Inter-*.ttf fonts/OFL-Inter.txt "$APP/Contents/Resources/Fonts/"
 
 cat > "$APP/Contents/Info.plist" <<PLIST
 <?xml version="1.0" encoding="UTF-8"?>

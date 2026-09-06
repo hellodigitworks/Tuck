@@ -30,9 +30,9 @@ let orange = NSColor(red: 1, green: 0.18, blue: 0, alpha: 1)
 
 // MARK: - Fonts
 
-/// One of the faces in fonts/, by PostScript name. The system font if it is missing.
-func font(_ name: String, _ size: CGFloat) -> NSFont {
-    let url = root.appendingPathComponent("fonts/\(name).ttf")
+/// One of the faces in fonts/, by PostScript name and file. The system font if it is missing.
+func font(_ name: String, file: String, _ size: CGFloat) -> NSFont {
+    let url = root.appendingPathComponent("fonts/\(file)")
     CTFontManagerRegisterFontsForURL(url as CFURL, .process, nil)
     return NSFont(name: name, size: size) ?? .systemFont(ofSize: size)
 }
@@ -186,13 +186,13 @@ func tile(_ size: Int, transparent: Bool = false) -> NSBitmapImageRep {
 
 // MARK: - The pictures
 
-let serifBig = font("Fraunces-Regular", 150)
-let serifMid = font("Fraunces-Regular", 116)
-let sansBody = font("Inter-Regular", 36)
-let sansMid = font("Inter-Regular", 30)
-let sans = font("Inter-Regular", 22)
-let sansSmall = font("Inter-Regular", 18)
-let sansMedium = font("Inter-Medium", 22)
+let serifBig = font("ExposureTrial--30", file: "ExposureTrial-30.otf", 150)
+let serifMid = font("ExposureTrial--30", file: "ExposureTrial-30.otf", 116)
+let sansBody = font("Inter-Regular", file: "Inter-Regular.ttf", 36)
+let sansMid = font("Inter-Regular", file: "Inter-Regular.ttf", 30)
+let sans = font("Inter-Regular", file: "Inter-Regular.ttf", 22)
+let sansSmall = font("Inter-Regular", file: "Inter-Regular.ttf", 18)
+let sansMedium = font("Inter-Medium", file: "Inter-Medium.ttf", 22)
 
 let tagline = "Hide the menu bar icons you are not using right now."
 

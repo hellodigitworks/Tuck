@@ -1,7 +1,7 @@
 import SwiftUI
 import DuckCore
 
-/// The look: cream paper, ink text, one orange. Fraunces for the words that set the room,
+/// The look: cream paper, ink text, one orange. Exposure for the words that set the room,
 /// Inter for the rest. Soft cards, round corners, a spring on everything that moves.
 enum Ink {
     static let paper = Color(red: 0.957, green: 0.937, blue: 0.902)
@@ -17,7 +17,7 @@ enum Ink {
 
 /// The two faces. Both ship inside the app; if one is missing the system font steps in.
 enum Type {
-    static func serif(_ size: CGFloat) -> Font { .custom("Fraunces-Regular", size: size) }
+    static func serif(_ size: CGFloat) -> Font { .custom("ExposureTrial--30", size: size) }
     static func sans(_ size: CGFloat) -> Font { .custom("Inter-Regular", size: size) }
     static func medium(_ size: CGFloat) -> Font { .custom("Inter-Medium", size: size) }
 }

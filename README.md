@@ -117,8 +117,11 @@ come from one script, so none of them is ever edited by hand:
 zsh scripts/make-images.sh
 ```
 
-The two typefaces, Fraunces and Inter, are built from their open-licence sources by
-`scripts/make-fonts.py`: small static files for the app, woff2 for the page.
+Inter is built from its open-licence source by
+`scripts/make-fonts.py`: a small static file for the app, woff2 for the page. Exposure (205TF)
+is a licensed face and is copied in as it is: `fonts/ExposureTrial-30.otf` for the app,
+`site/fonts/exposure-30.otf` for the page. The file here is the trial; the licence is bought
+before a release ships it.
 
 ## The landing page
 
@@ -139,7 +142,7 @@ npx wrangler pages deploy . --project-name tuck --branch main
 | `src/ui/` | The mark artwork and the preferences window |
 | `scripts/` | Build script, test script, icon generator and image generator |
 | `icons/` | The duck, drawn by hand in `duck.svg`, and the app icon made from it |
-| `fonts/` | Fraunces and Inter, the two faces the app ships. Generated |
+| `fonts/` | Exposure and Inter, the two faces the app ships. Inter is generated, Exposure is licensed |
 | `site/` | The landing page and the install script, deployed as they are |
 | `tests/` | Checks for the settings and update logic |
 | `docs/images/` | The pictures in this README, the social card and the lab shot. Generated |
