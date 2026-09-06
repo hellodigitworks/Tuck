@@ -36,7 +36,7 @@
 
   <link rel="preload" href="fonts/exposure-30.otf" as="font" type="font/otf" crossorigin />
   <link rel="preload" href="fonts/inter.woff2" as="font" type="font/woff2" crossorigin />
-  <link rel="stylesheet" href="css/duck.css?v=2" />
+  <link rel="stylesheet" href="css/duck.css?v=3" />
 </head>
 <body>
 
@@ -78,6 +78,15 @@
     <button class="button reveal" style="--i:2" type="button" id="install"
       data-line="curl -fsSL https://duck.hellodigitworks.com/install.sh | sh">Install for Mac</button>
     <code class="line" id="line" hidden>curl -fsSL https://duck.hellodigitworks.com/install.sh | sh</code>
+
+    <!-- Once the line is copied, how the install goes: Terminal, paste, Return, the mark
+         in the bar. Drawn, silent, loops. No controls, no picture in picture, no saving. -->
+    <video class="how" id="how" hidden muted loop playsinline preload="none"
+      poster="media/install.jpg?v=1" disablepictureinpicture controlslist="nodownload noplaybackrate noremoteplayback"
+      oncontextmenu="return false"
+      aria-label="Open Terminal, paste the line, press Return. Duck's mark appears in the menu bar.">
+      <source src="media/install.mp4?v=1" type="video/mp4" />
+    </video>
   </main>
 
   <script>
@@ -89,16 +98,27 @@
     // will not hand over the clipboard does the line itself appear, to be copied by hand.
     var install = document.getElementById('install');
     var line = document.getElementById('line');
+    var how = document.getElementById('how');
     var text = install.getAttribute('data-line');
+    // The clip opens under the button and plays on its own, silent, looping.
+    var show = function () {
+      if (!how.hidden) return;
+      how.hidden = false;
+      how.classList.add('open');
+      var play = how.play();
+      if (play && play.catch) play.catch(function () {});
+    };
     install.addEventListener('click', function () {
       var copied = function () {
         install.textContent = 'Copied. Open Terminal, paste, press Return.';
         install.classList.add('done');
+        show();
       };
       var byHand = function () {
         line.hidden = false;
         install.textContent = 'Copy this line, then paste it in Terminal.';
         install.classList.add('done');
+        show();
       };
       if (navigator.clipboard && navigator.clipboard.writeText) {
         navigator.clipboard.writeText(text).then(copied, byHand);
