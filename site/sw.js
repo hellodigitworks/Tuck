@@ -1,6 +1,6 @@
 // Duck's service worker. Keeps the page and its files so it opens with no signal.
 // Bump CACHE whenever any file below changes, or people keep seeing the old page.
-const CACHE = 'duck-v1';
+const CACHE = 'duck-v2';
 const FILES = [
   '/',
   '/index.html',

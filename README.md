@@ -135,7 +135,7 @@ npx wrangler pages deploy . --project-name tuck --branch main
 | `src/app/` | App start-up and the menu bar items |
 | `src/ui/` | The mark artwork and the preferences window |
 | `scripts/` | Build script, test script, icon generator and image generator |
-| `icons/` | Generated app icon |
+| `icons/` | The duck, drawn by hand in `duck.svg`, and the app icon made from it |
 | `fonts/` | Fraunces and Inter, the two faces the app ships. Generated |
 | `site/` | The landing page and the install script, deployed as they are |
 | `tests/` | Checks for the settings and update logic |
