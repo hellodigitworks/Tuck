@@ -262,8 +262,12 @@ save(tile(180), site.appendingPathComponent("apple-touch-icon.png"))
 save(tile(192), site.appendingPathComponent("icon-192.png"))
 save(tile(512), site.appendingPathComponent("icon-512.png"))
 
-// The tab icon is the duck itself, the same file make-icon.swift wrote.
+// The tab icon is the duck itself, the same file make-icon.swift reads, with one rule
+// added: in a dark tab bar the duck is cream, so it does not vanish.
 let favicon = site.appendingPathComponent("favicon.svg")
-try? FileManager.default.removeItem(at: favicon)
-try! FileManager.default.copyItem(at: root.appendingPathComponent("icons/duck.svg"), to: favicon)
+var svg = try! String(contentsOf: root.appendingPathComponent("icons/duck.svg"), encoding: .utf8)
+if let open = svg.range(of: ">", range: svg.range(of: "<svg")!.upperBound..<svg.endIndex) {
+    svg.insert(contentsOf: "<style>@media (prefers-color-scheme: dark){path{fill:#F4EFE6}}</style>", at: open.upperBound)
+}
+try! svg.write(to: favicon, atomically: true, encoding: .utf8)
 print("  site/images/favicon.svg")

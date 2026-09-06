@@ -7,8 +7,8 @@ cd "$(dirname "$0")/.."
 
 APP_NAME="Duck"
 BUNDLE_ID="com.hdw.duck"
-VERSION="1.4.1"
-BUILD_NUMBER="9"
+VERSION="1.4.2"
+BUILD_NUMBER="10"
 
 # Build outside the Google Drive folder: Drive sync corrupts incremental
 # build state (files appear where directories should be).
@@ -26,8 +26,9 @@ if [ ! -f icons/AppIcon.icns ]; then
   swift scripts/make-icon.swift
 fi
 cp icons/AppIcon.icns "$APP/Contents/Resources/AppIcon.icns"
-# The duck itself, for the foot of the window.
+# The duck itself, for the foot of the window, and the dark Dock tile.
 cp icons/duck.svg "$APP/Contents/Resources/duck.svg"
+cp icons/AppIcon-dark.png "$APP/Contents/Resources/AppIcon-dark.png"
 
 # The two faces the window uses, Exposure and Inter. macOS registers everything in Resources/Fonts on its own
 # (ATSApplicationFontsPath below), so there is no font code in the app at all.

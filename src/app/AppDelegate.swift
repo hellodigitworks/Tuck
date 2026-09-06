@@ -8,10 +8,12 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
     private let preferences = Preferences.shared
     private var statusBar: StatusBarController?
     private var cancellables = Set<AnyCancellable>()
+    private var appearanceWatch: NSKeyValueObservation?
 
     func applicationDidFinishLaunching(_ notification: Notification) {
         NSApp.mainMenu = MainMenu.build()
         showInDock(preferences.showInDock)
+        followAppearance()
         observePreferences()
 
         let statusBar = StatusBarController(preferences: preferences, updates: .shared)
@@ -49,6 +51,28 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
     /// bar only while it is off. main.swift starts it off; this applies what was saved.
     private func showInDock(_ show: Bool) {
         NSApp.setActivationPolicy(show ? .regular : .accessory)
+    }
+
+    /// The Dock tile follows the Mac: cream with an ink duck in light mode, ink with a
+    /// cream duck in dark. An .icns holds one look, so the dark one is a PNG in the bundle
+    /// and the app swaps it in itself whenever the appearance changes.
+    private func followAppearance() {
+        appearanceWatch = NSApp.observe(\.effectiveAppearance, options: [.initial, .new]) { [weak self] _, _ in
+            self?.dockTileForAppearance()
+        }
+        DistributedNotificationCenter.default().addObserver(
+            self, selector: #selector(dockTileForAppearance),
+            name: Notification.Name("AppleInterfaceThemeChangedNotification"), object: nil)
+    }
+
+    @objc private func dockTileForAppearance() {
+        let dark = NSApp.effectiveAppearance.bestMatch(from: [.aqua, .darkAqua]) == .darkAqua
+        if dark, let url = Bundle.main.url(forResource: "AppIcon-dark", withExtension: "png"),
+           let tile = NSImage(contentsOf: url) {
+            NSApp.applicationIconImage = tile
+        } else {
+            NSApp.applicationIconImage = nil // the bundle's own icon, the light tile
+        }
     }
 
     private func observePreferences() {
